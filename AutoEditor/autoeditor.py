@@ -174,8 +174,8 @@ if mode == 2: #Auto-Edit Video Mode
         else:
             break
     """ 
-    timestamps_file = open("1.txt", 'r')
-    unedited_clip = VideoFileClip("stopwatchfortesting.mkv")
+    timestamps_file = open("testvid.txt", 'r')
+    unedited_clip = VideoFileClip("testvid.mkv")
     
     #find the offset, probably with sound detection #todo
     offset = 0
@@ -198,7 +198,7 @@ if mode == 2: #Auto-Edit Video Mode
             continue 
         
         split_line = i.split("\t") #returns a list with each item that is seperated by \t
-        timestamp = int(split_line[0]) + offset
+        timestamp = float(split_line[0]) + offset
         label = split_line[1].strip()
         
         if label == "Rejected":

@@ -84,7 +84,7 @@ if mode == 1: #Record Timestamps Mode
     
     outputfile = input("enter the name of the file to write to (no extention): ")+".txt"
     outputfile = open(outputfile, "w")
-    outputfile.write("Timestamps file for [autoeditor program] recorded on", datetime.datetime.now() )
+    outputfile.write("Timestamps file for [autoeditor program] recorded on" + str(datetime.datetime.now()) )
     
     segments_done = 0
     start_time = None #will be set by the time its used
@@ -174,8 +174,8 @@ if mode == 2: #Auto-Edit Video Mode
         else:
             break
     """ 
-    timestamps_file = open("1.txt", 'r')
-    unedited_clip = VideoFileClip("stopwatchfortesting.mkv")
+    timestamps_file = open("testvid.txt", 'r')
+    unedited_clip = VideoFileClip("testvid.mkv")
     
     #find the offset, probably with sound detection #todo
     offset = 0
