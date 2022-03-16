@@ -1,0 +1,14 @@
+Settings: Don't modify stuff that looks like it shouldn't be modified (like default hotkey names) or the code might break
+hotkey name formatting is for the python module keyboard from pypi
+
+
+#you can add effects using the format "name: hotkey" above the line /Hotkeys
+Hotkeys:
+Start Recording: ctrl+shift+\\
+Stop Recording: ctrl+shift+\\
+Accept: alt+q
+Reject: alt+w
+RetakeA: alt+e
+/Hotkeys
+
+

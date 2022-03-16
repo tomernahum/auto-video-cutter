@@ -1,0 +1,50 @@
+Info: 
+Last timestamp - timestamp you're looking at = segment that was rejected (cut from the video) or accepted (marked to be put in the video). If it is retake A., it's actually everything since the previously accepted now rejected segment's start
+
+4.35	Accepted    0-4.35 accepted
+5.43	Accepted
+5.66	Accepted    5.43 - 5.66 accepted
+5.96	Rejected    5.66 - 5.93 rejected
+6.15	Rejected
+6.39	Accepted    6.15 - 6.39 accepted
+6.55	Retake A.   6.15(above) - 6.55 now rejcted
+6.74	Rejected    6.55 - 6.74 rejected
+7.05	Accepted    6.74 - 
+7.49	Accepted
+7.71	
+38.86	Accepted
+39.67	Accepted
+39.87	Accepted
+40.04	Accepted
+40.19	Accepted
+40.32	Accepted
+40.45	Accepted
+83.1	Accepted
+83.94	Accepted
+84.26	Accepted
+84.47	Accepted
+84.66	Accepted
+84.8	Accepted
+111.65	Accepted
+112.21	Accepted
+112.42	Accepted
+112.59	Accepted
+112.74	Accepted
+112.9	Accepted
+113.05	Accepted
+113.17	Accepted
+113.57	Rejected
+113.86	Rejected
+114.11	Accepted
+114.39	Rejected
+115.21	Accepted    114-115 accepted
+115.49	Rejected    1
+115.73	Rejected
+115.95	Rejected
+116.08	Accepted
+116.32	Accepted
+116.56	Accepted
+116.79	Rejected
+117.26	Accepted
+117.54	Accepted
+117.76	Accepted
