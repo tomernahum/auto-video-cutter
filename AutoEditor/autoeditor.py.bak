@@ -23,7 +23,7 @@ import datetime
 
 mode = 0
 while True:
-    mode = input("Choose Mode: \n1)Record 2)Proccess 3)Settings&Info:  ")
+    mode = input("Choose Mode: \n1)Record 2)Proccess 3)Settings/Info:  ")
     if mode != "1" and mode != "2":
         print("invalid choice, valid choices: \"1\", \"2\", \"3\"")
         continue
@@ -41,7 +41,7 @@ if mode == 1: #Record Timestamps Mode
     def find_hotkeys(): #only gonna use this once but I want to have something segmented / collapsable
         pass
         #WIP
-        """
+        """ this might all be scraped
         
         def find_line(linetofind, linelist): # potential thing
             for i in range(linelist):

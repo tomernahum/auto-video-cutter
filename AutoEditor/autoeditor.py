@@ -23,7 +23,7 @@ import datetime
 
 mode = 0
 while True:
-    mode = input("Choose Mode: \n1)Record 2)Proccess 3)Settings&Info:  ")
+    mode = input("Choose Mode: \n1)Record 2)Proccess 3)Settings/Info:  ")
     if mode != "1" and mode != "2":
         print("invalid choice, valid choices: \"1\", \"2\", \"3\"")
         continue
@@ -84,7 +84,7 @@ if mode == 1: #Record Timestamps Mode
     
     outputfile = input("enter the name of the file to write to (no extention): ")+".txt"
     outputfile = open(outputfile, "w")
-    outputfile.write("Timestamps file for [autoeditor program] recorded on", datetime.datetime.now() )
+    outputfile.write("Timestamps file for [autoeditor program] recorded on" + str(datetime.datetime.now()) )
     
     segments_done = 0
     start_time = None #will be set by the time its used
