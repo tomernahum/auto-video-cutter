@@ -162,7 +162,7 @@ if mode == 2: #Auto-Edit Video Mode
     # here, the different modes are basically different programs, maybe they should be different files / functions
     
     
-    #select the files.  (This is not a great system. Should make auto detection/selection system for this)
+    #select the files. (temporary system)
     """ commented out for ease of testing but will eventually be replaced anyway
     while True:
         try:
@@ -182,18 +182,20 @@ if mode == 2: #Auto-Edit Video Mode
     #any time there is a timestamp from the file just act like its + the offset
     
     
+    #create Segment objects  with times to clip
     class Segment:
         def __init__(self, raw_start, raw_end):
             self.raw_start = raw_start   #raw = timestamp in uncut video
             self.raw_end = raw_end  #
+        def __str__(self):
+            return str(self.raw_start) + " - "+ str(self.raw_end)
         def get_raw_start(self):
             return self.raw_start
         def get_raw_end(self): 
             return self.raw_end 
     
-    #needs testing obviously
-    accepted_segments = []   
-    
+    #Find the Segments that will make it into the video
+    accepted_segments = []
     pointer_timestamp = 0 + offset #end of last segment already proccessed
     for i in timestamps_file:
         if i[0] == 'T':  #first line is not a timestamp
@@ -214,23 +216,24 @@ if mode == 2: #Auto-Edit Video Mode
             pointer_timestamp = timestamp
             
         elif label == "Retake A":  #todo: make name of this function consistent
-            new_ps = accepted_segments[-1].get_raw_start()   #(get start of last accepted segment)
-            pointer_timestamp = new_ps
+            pointer_timestamp = timestamp
             del accepted_segments[-1]
-            #bug: doesn't seem to work
         
         
         
         #needs effects
-        
+    
     
     #apply the effects  
     
     #stitch the clips together w/ Moviepy (temp)
+    print("Accepted Segments:")
     output_vfcs = [] #(vfc stands for VideoFileClip from moviepy)
     for segment_i in accepted_segments:
+        print(segment_i)
         vfc = unedited_clip.subclip(segment_i.get_raw_start(), segment_i.get_raw_end())
         output_vfcs.append(vfc)
+    print("")
     final_vfc = concatenate(output_vfcs)
     final_vfc.write_videofile("output.mp4") #todo: custom name system or auto-name
     
