@@ -17,3 +17,5 @@ Hit reject as many times as you want till you get a good take then hit accept (i
 
 
 Features described are not necessarily implemented yet this is a work in progress
+
+#How to Use
