@@ -177,6 +177,13 @@ if mode == 2: #Auto-Edit Video Mode
     timestamps_file = open("test2.txt", 'r')
     unedited_clip = VideoFileClip("testvid2.mkv")
     
+    print("Editing the video")
+    #things it should be able todo at start
+    # - Auto Detect Video files   - Let you select video files with gui?
+    # - pick timestamp for it to offset to
+    # - auto detect offset (whenever sound starts)
+    # - Have the option to run a command/program after you are done (for using w/ silence skipper)
+    
     #find the offset, probably with sound detection #todo
     offset = 0
     #any time there is a timestamp from the file just act like its + the offset

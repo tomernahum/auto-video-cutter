@@ -16,6 +16,7 @@ Timestamps:
 #todo: need to add a way to adjust it. Sync start time - maybe play a beep at TS recording start?, 
 # maybe that could be auto detected (stay silent until then)
 #+ maybe a manual time offset set before starting the TS recording if you are doing a bunch on a stream or something
+#should eventually add support for a custom browser doc in obs (local .html files seem to work)
 
 import keyboard
 import time
@@ -180,8 +181,7 @@ if mode == 2: #Auto-Edit Video Mode
     print("Editing the video")
     #things it should be able todo at start
     # - Auto Detect Video files   - Let you select video files with gui?
-    # - pick timestamp for it to offset to
-    # - auto detect offset (whenever sound starts)
+    # - pick timestamp for it to offset to   - auto detect offset (whenever sound starts)
     # - Have the option to run a command/program after you are done (for using w/ silence skipper)
     
     #find the offset, probably with sound detection #todo
