@@ -41,7 +41,7 @@ if mode == 1: #Record Timestamps Mode
     def find_hotkeys(): #only gonna use this once but I want to have something segmented / collapsable
         pass
         #WIP
-        """ this might all be scraped
+        """
         
         def find_line(linetofind, linelist): # potential thing
             for i in range(linelist):
