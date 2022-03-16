@@ -84,7 +84,7 @@ if mode == 1: #Record Timestamps Mode
     
     outputfile = input("enter the name of the file to write to (no extention): ")+".txt"
     outputfile = open(outputfile, "w")
-    outputfile.write("Timestamps file for [autoeditor program] recorded on" + str(datetime.datetime.now()) )
+    outputfile.write("Timestamps file for [autoeditor program] recorded on " + str(datetime.datetime.now()) + "\n")
     
     segments_done = 0
     start_time = None #will be set by the time its used
@@ -174,8 +174,8 @@ if mode == 2: #Auto-Edit Video Mode
         else:
             break
     """ 
-    timestamps_file = open("testvid.txt", 'r')
-    unedited_clip = VideoFileClip("testvid.mkv")
+    timestamps_file = open("test2.txt", 'r')
+    unedited_clip = VideoFileClip("testvid2.mkv")
     
     #find the offset, probably with sound detection #todo
     offset = 0
@@ -186,7 +186,9 @@ if mode == 2: #Auto-Edit Video Mode
         def __init__(self, raw_start, raw_end):
             self.raw_start = raw_start   #raw = timestamp in uncut video
             self.raw_end = raw_end  #
-        def get_raw_end(self): #I heard getter/setters were better form
+        def get_raw_start(self):
+            return self.raw_start
+        def get_raw_end(self): 
             return self.raw_end 
     
     #needs testing obviously
@@ -198,7 +200,7 @@ if mode == 2: #Auto-Edit Video Mode
             continue 
         
         split_line = i.split("\t") #returns a list with each item that is seperated by \t
-        timestamp = int(split_line[0]) + offset
+        timestamp = float(split_line[0]) + offset
         label = split_line[1].strip()
         
         if label == "Rejected":
@@ -212,22 +214,35 @@ if mode == 2: #Auto-Edit Video Mode
             pointer_timestamp = timestamp
             
         elif label == "Retake A":  #todo: make name of this function consistent
-            new_ps = accepted_segments[-2].get_raw_end()   #(get end of second to last segment)
+            new_ps = accepted_segments[-1].get_raw_start()   #(get start of last accepted segment)
             pointer_timestamp = new_ps
-            accepted_segments.pop()
+            del accepted_segments[-1]
+            #bug: doesn't seem to work
+        
         
         
         #needs effects
         
     
-    #stitch the clips together
-    #apply the effects   
+    #apply the effects  
+    
+    #stitch the clips together w/ Moviepy (temp)
+    output_vfcs = [] #(vfc stands for VideoFileClip from moviepy)
+    for segment_i in accepted_segments:
+        vfc = unedited_clip.subclip(segment_i.get_raw_start(), segment_i.get_raw_end())
+        output_vfcs.append(vfc)
+    final_vfc = concatenate(output_vfcs)
+    final_vfc.write_videofile("output.mp4") #todo: custom name system or auto-name
+    
+    
+     
     
     
     #later I want one of the effects to be exporting that clip for manuel editing
     #it'd also be nice to have an option to export the clips into premier pro/etc
     #like that skip_silence project but we'll see if I can while using moviepy
     
+    #export it
     unedited_clip.close()
     
     
