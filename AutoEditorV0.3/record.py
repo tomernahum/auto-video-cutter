@@ -2,14 +2,23 @@
 #choose File Name
 #open/create file for writting
 #monitor for hotkeys & print + write to file when they are pressed
+#also print helpful info as user presses hotkeys
 
-#todo eventually: Make this usable through website/localhost or whatever instead of terminal so it could be added to obs as a browser-dock
+# todo eventually (maybe): Make this usable through website/localhost or whatever instead of terminal so it could be added to obs as a browser-dock
+#      - would this entail replacing the print statements basically? Maybe even replacing keyboard shudder
+# todo idea: should it count the projected length of the output video as you're going? Yes methinks - that could get complicated with retake a
+#      - 
+#bug/todo: Indent from \t between time and Accepted/Rejected/etc is too short
 
 import datetime
 import time
 import keyboard
 
+
 segments_done = 0 #Q/N: this is apparently bad form but I don't think I can pass / return it (there could be a way actually)with the keyboard module I'm using... So I will put the global statement at the top so you know what modifies it...
+edited_vid_length = 0 #WIP
+
+
 
 #Main code that is called on from main.py
 def start_record_timestamps_mode():
@@ -77,6 +86,7 @@ def mark_cut(label, start_time, output_file):
     # time_elapsed could be moved to the outside and just passed in 
     # (still found with same function), should it be generally?)"""
     
+
     #should this be split into 3 functions? They all essentially do the same thing
     if label == "accept":
         segments_done += 1
