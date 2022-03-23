@@ -1,0 +1,11 @@
+Timestamps file for [autoeditor program] recorded on 2022-03-22 21:58:09.205654
+2.01	Accepted
+3.18	Accepted
+6.91	Rejected
+10.03	Accepted
+11.43	Accepted
+12.07	Rejected
+13.11	Rejected
+13.8	Rejected
+14.61	Accepted
+50.58	Accepted

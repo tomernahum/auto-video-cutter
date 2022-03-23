@@ -1,6 +1,6 @@
 Settings: Don't modify stuff that looks like it shouldn't be modified (like default hotkey names) or the code might break
 hotkey name formatting is for the python module keyboard from pypi
-
+This is a mockup fyi
 
 #you can add effects using the format "name: hotkey" above the line /Hotkeys
 Hotkeys:

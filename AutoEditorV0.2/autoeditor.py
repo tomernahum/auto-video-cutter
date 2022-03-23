@@ -11,6 +11,16 @@ Timestamps:
 4. Effect Segments (WIP)
 5. Short Effect (WIP)
 """
+"""
+#Effects:
+    - replace segment with edited clip (edits can be done by script or manually)
+        - Visual Effects
+        - Replace visuals but not audio in clip
+        - replace 0 lenth segment with clip (insert clip)
+    - transitions between cuts (doing this last)
+
+"""
+
 
 #currently you have to start timestamps and video recording at same time (like with same hotkey)
 #todo: need to add a way to adjust it. Sync start time - maybe play a beep at TS recording start?, 
@@ -22,15 +32,20 @@ import keyboard
 import time
 import datetime
 
+#Selct mode
 mode = 0
 while True:
     mode = input("Choose Mode: \n1)Record 2)Proccess 3)Settings/Info:  ")
     if mode != "1" and mode != "2":
         print("invalid choice, valid choices: \"1\", \"2\", \"3\"")
         continue
-    else:
-        mode = int(mode)
-        break
+    
+    mode = int(mode)
+    break
+
+
+
+
 
 if mode == 1: #Record Timestamps Mode
     #todo: make hotkeys based on stored file potentially to be modified in mode 3
@@ -201,9 +216,16 @@ if mode == 2: #Auto-Edit Video Mode
         def get_raw_end(self): 
             return self.raw_end 
     
-    #Find the Segments that will make it into the video
+    #mark the effects
+    #mark the accepted Segments
+    #MoviePy: Apply the effects
+    #MoviePy: Do the cuts
+    
+    
+    #Find the Segments that will make it into the video   (should be refactored as they say)
     accepted_segments = []
-    pointer_timestamp = 0 + offset #end of last segment already proccessed
+    
+    raw_pointer_timestamp = 0 + offset #end of last segment already proccessed
     for i in timestamps_file:
         if i[0] == 'T':  #first line is not a timestamp
             continue 
@@ -214,6 +236,9 @@ if mode == 2: #Auto-Edit Video Mode
         
         if label == "Rejected":
             pointer_timestamp = timestamp
+            #accepted_pointer_timestamp = accepted_pointer_timestamp
+            
+            
         elif label == "Accepted":
             raw_start = pointer_timestamp
             raw_end = timestamp
@@ -225,23 +250,18 @@ if mode == 2: #Auto-Edit Video Mode
         elif label == "Retake A":  #todo: make name of this function consistent
             pointer_timestamp = timestamp
             del accepted_segments[-1]
-        
-        
-        
-        #needs effects
+
     
-    
-    #apply the effects  
     
     #stitch the clips together w/ Moviepy (temp)
     print("Accepted Segments:")
-    output_vfcs = [] #(vfc stands for VideoFileClip from moviepy)
+    output_moviepy_clips = [] 
     for segment_i in accepted_segments:
         print(segment_i)
         vfc = unedited_clip.subclip(segment_i.get_raw_start(), segment_i.get_raw_end())
-        output_vfcs.append(vfc)
+        output_moviepy_clips.append(vfc)
     print("")
-    final_vfc = concatenate(output_vfcs)
+    final_vfc = concatenate(output_moviepy_clips)
     final_vfc.write_videofile("output.mp4") #todo: custom name system or auto-name
     
     
