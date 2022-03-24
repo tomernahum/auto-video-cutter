@@ -13,7 +13,6 @@
 
 import datetime
 import time
-from urllib.parse import parse_qs
 import keyboard
 
 
