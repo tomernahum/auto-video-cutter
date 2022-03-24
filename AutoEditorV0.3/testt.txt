@@ -1,0 +1,64 @@
+Timestamps file for [autoeditor program] recorded on 2022-03-23 19:06:25.332997
+6.60	Rejected
+7.34	Accepted
+8.54	Accepted
+8.72	Accepted
+8.90	Accepted
+9.08	Accepted
+9.24	Accepted
+9.40	Accepted
+9.55	Accepted
+9.73	Rejected
+10.04	Rejected
+16.34	Accepted
+16.75	Accepted
+17.43	Rejected
+17.75	Rejected
+17.93	Rejected
+18.64	Rejected
+56.73	Accepted
+57.08	Accepted
+57.26	Accepted
+57.42	Accepted
+58.44	Rejected
+58.68	Rejected
+58.89	Retake A.
+59.29	Retake A.
+59.47	Retake A.
+59.70	Rejected
+59.94	Rejected
+60.17	Accepted
+60.36	Accepted
+60.54	Accepted
+60.70	Accepted
+60.88	Accepted
+61.07	Accepted
+93.95	Accepted
+94.65	Accepted
+94.85	Accepted
+95.05	Rejected
+95.23	Rejected
+95.40	Rejected
+95.67	Retake A.
+95.87	Retake A.
+96.06	Retake A.
+97.72	Rejected
+98.23	Accepted
+98.91	Accepted
+99.25	Rejected
+99.56	Rejected
+99.97	Retake A.
+100.52	Retake A.
+100.85	Retake A.
+101.41	Accepted
+101.74	Accepted
+101.91	Accepted
+102.07	Accepted
+102.23	Accepted
+102.37	Accepted
+102.53	Accepted
+13057.66	Accepted
+13058.39	Accepted
+13059.69	Rejected
+13062.28	Accepted
+13066.04	Ended
