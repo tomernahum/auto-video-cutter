@@ -13,6 +13,7 @@
 #bug/todo: Indent from \t between time and Accepted/Rejected/etc is too short (maybe)
 #bug: pressing hotkeys in another program does activate but also can make error sound or trigger that program's hotkeys
 
+#
 import datetime
 import time
 import keyboard
@@ -114,18 +115,21 @@ def mark_cut(label, start_time, output_file, settings_dict):
     #modify edited_vid_projections_list & get current projection
     projected_final_vid_length = modify_projected_final_vid_length_history_and_return_current(label, settings_dict, cut_timestamp)
     #these things could have a shorter name lol and possibly the modify & return in 1 func is bad form. Idk what to do though
-        
     
-    
-    #build the to-print string based on settings & the to-write (in file) string   
-    to_print_str = build_to_print_str(settings_dict, cut_timestamp, past_tense_label, segments_done, projected_final_vid_length)
+    #write to file
     to_write_str = cut_timestamp + "\t" + past_tense_label + "\n"
+    output_file.write(to_write_str) 
+        
+    #print the information
+    to_print_str = build_to_print_str(settings_dict, cut_timestamp, past_tense_label, segments_done, projected_final_vid_length, label)
+    print(to_print_str)
+
 
     last_cut_timestamp = cut_timestamp #needs to be done after modify projection
 
-    #perform the final outputs    #q/n should this be cut the other way
-    print(to_print_str)
-    output_file.write(to_write_str)
+ 
+
+
 
 
 def modify_projected_final_vid_length_history_and_return_current(label, settings_dict, cut_timestamp):
@@ -146,16 +150,31 @@ def modify_projected_final_vid_length_history_and_return_current(label, settings
     
     return projected_final_vid_length_history_queue[-1]
 
-def build_to_print_str(settings_dict, time_elapsed, past_tense_label, segments_done, projected_final_vid_length):
+def build_to_print_str(settings_dict, time_elapsed, past_tense_label, segments_done, projected_final_vid_length, label):
+    #todo: better system of structuring outputs than \t 
+
     to_print_str = ""
     to_print_str += time_elapsed
+    
     to_print_str += "\t" + past_tense_label
+    
     if settings_dict["Include completed segment count (long/short/no)"] == "short": 
         to_print_str += "\t" + str(segments_done) 
     elif settings_dict["Include completed segment count (long/short/no)"] == "long":
-        to_print_str += "\t" + str(segments_done) + "todo: put the detail back in"
-    if settings_dict["Include projected final vid length (yes/no)"] == "yes":    #todo: consider long/short
+        if label == "accept": 
+            to_print_str += "\t%3d segments accepted, now recording #%2d" % (segments_done,segments_done+1)
+        elif label == "reject":
+            to_print_str += "\t re-recording segment #%2d               " % (segments_done+1) # so \t will line up the same
+        elif label == "retake accepted": 
+            to_print_str += "\t re-recording previously accepted segment #%2d" % (segments_done+1) #rerecording -the- previously...
+        elif label == "end":
+            to_print_str += "\t>total accepted segments: %2d             " % (segments_done)
+    
+    if settings_dict["Include projected final vid length (long/short/no)"] == "short":    #todo: consider long/short
         to_print_str += "\t" + truncate_number_str(projected_final_vid_length, 2)
+    elif settings_dict["Include projected final vid length (long/short/no)"] == "long":
+        to_print_str += "\t Edited Vid Time: " + truncate_number_str(projected_final_vid_length, 2) #todo possibly rework name
+    
     return to_print_str
 
 def find_past_tense_label(label):
@@ -191,12 +210,12 @@ def get_hotkeys_dict():
     return {"start recording":"ctrl+shift+\\", "end recording":"ctrl+shift+\\",
             "accept":"alt+q", "reject":"alt+w", "retake accepted":"alt+e",
             "test-effect":"alt+z"}
-    #Todo: Settings file with hotkeys customization + infinite custom name effect hotkeys
+    #todo: Settings file with hotkeys customization + infinite custom name effect hotkeys
 
 def get_settings_dict():
     #In file will be under Record Mode Settings
-    settings_dict = {"Include completed segment count (long/short/no)" : "short",
-                    "Include projected final vid length (yes/no)" : "yes",
+    settings_dict = {"Include completed segment count (long/short/no)" : "long",
+                    "Include projected final vid length (long/short/no)" : "long",
                     "Projected final vid length display (s, m/s)" : "m/s",
                     "Retake Accepted Limit (0-99/no)" : "no",
                     "Quick >>>Info after starting (yes/no)" : "yes"}

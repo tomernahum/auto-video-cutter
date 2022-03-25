@@ -21,12 +21,22 @@ elif mode == "2":
 #todo next:
 # - proper display descriptions for segments done & estimated_edited_vid_time
 # - Minutes/Seconds display not just seconds
-# - Call it properly
+# - Call it properly (dont import function)
+# - Probably better system than \t for terminal dispplay
 # - maybe a current time display if thats possible (+ projected final time which would require a rework)
 # - Add a beep when started (for syncing purposes)
 # ^ all of these probably dont require much creative energy except 2nd to last
+# - look into hotkey override for other apps
+# - add some of the settings below
+
+#Settings: 
+# - Timestamp display type (s/hms)
+# - Put Edited Video timestamp first (yes/no) default: no
 # - 
 
+
+#todo later
+# - Instead of engaging with terminal, engage with anythink that can be added to obs panel (localhost)
 
 #Later Notes:
 #Could consider making a cut silence effect to run before another say music effect
