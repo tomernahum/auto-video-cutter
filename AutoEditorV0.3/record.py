@@ -19,17 +19,22 @@ import keyboard
 
 #Q/N: global vars are apparently bad form but I don't think I can pass / return it (there could be a way actually)with the keyboard module I'm using... So I will put the global statement at the top so you know what modifies it... | I've also been head someone say that if your function requires a lot of inputs it's not doing one thing well enough? Well where should those inputs go the main code?
 segments_done = 0
-edited_vid_length_projections_history_queue = [0] #could be replaced with deque todo decide
-#^last item is the most recent one (for printing), other items are history (need it when retake a ing)
+projected_final_vid_length_history_queue = [0] #could be replaced with deque 
+#^last item is the most recent one (for printing), other items are history (need it when retake a. ing)
+#this is used for reverting the time after a retake a. is called. The length of this has to do with the setting max retakes
+#Q/N/todo: I feel like the implementation of this could stand to be a little clearer, 
 last_cut_timestamp = "0"
 
 #Main code that is called on from main.py
 def start_record_timestamps_mode():
     global segments_done
+    global projected_final_vid_length_history_queue #
+
     segments_done = 0
 
     hotkeys_dict = get_hotkeys_dict()
     settings_dict = get_settings_dict()
+    
     output_file = open(ask_for_output_file_name(),"w+")
     
     #write file header
@@ -41,29 +46,28 @@ def start_record_timestamps_mode():
     start_hotkey = hotkeys_dict["start recording"]
     end_hotkey = hotkeys_dict["end recording"]
     print(f"Press [{start_hotkey}] to start recording...   ([{end_hotkey}] to end)")
+    
+    
     keyboard.wait(start_hotkey) #wait until start key pressed
     start_time = time.time()
-    #print("Started")  #should whole segment be turned into a function somehow?
 
-    
     #Tell the user a quick info summary 
     if settings_dict["Quick >>>Info after starting (yes/no)"] == "yes":
         reject_key = hotkeys_dict["reject"]
         accept_key = hotkeys_dict["accept"]
         print(f">>> Info:   press [{reject_key}] if you mess up to rerecord from the last time you pressed [{accept_key}] or started"
         + f". Press [{accept_key}] to save")
-    
     print("Started")
 
     #add hotkeys with keyboard module
     add_hotkey_detection(hotkeys_dict, start_time, output_file, settings_dict)
     #each hotkey executes a function basically, (those being mark_cut() and WIPmark_effect())
     
-    #wait till stop hotkey is pressed
+    #wait till stop hotkey is pressed (hotkeys are detected while waiting)
     keyboard.wait(hotkeys_dict["end recording"]) 
     
     mark_cut("end", start_time, output_file, settings_dict)
-    projected_final_time = edited_vid_length_projections_history_queue[-1]
+    projected_final_time = projected_final_vid_length_history_queue[-1]
     output_file.write(f"EOF segments done: {segments_done}, projected final time: {projected_final_time} \n")#write segments/projected time summary at bottom of file
     output_file.close()
     print("File Saved. Goodbye")
@@ -81,60 +85,64 @@ def add_hotkey_detection(hotkeys_dict, start_time, output_file, settings_dict):
             # makes it so that if you press the hotkey while code is running
             # it runs the function mark_cut w/ the label as an input
         else:
-            keyboard.add_hotkey(literal_hotkey_str, print, args=["temp"])
+            keyboard.add_hotkey(literal_hotkey_str, print, args=["temp - pressed ", literal_hotkey_str])
             #this will be custom effects markers&doers hotkeys
 
 
 # Is called from pressing hotkeys (and right at end) prints and writes to file timestamp & cut label + prints and tracks segments_done & edited_vid_length
 def mark_cut(label, start_time, output_file, settings_dict):
     global segments_done 
-    global edited_vid_length_projections_history_queue #very long name
+    global projected_final_vid_length_history_queue #very long name
     global last_cut_timestamp 
     #Q/N: I am checking the label 3 times to seperate the operations. Should I just do this once for efficiency or is this better for readability
     
-    #todo put a settings-togglable guard against multiple retake-accepteds in a row
+    if label == "retake accepted" and len(projected_final_vid_length_history_queue) <= 1: 
+        print("too many retakes!")
+        return #abandon the cut
 
-    time_elapsed = get_time_elapsed_str(start_time)
-    """ q/n: (if the thing calling this were a normal piece of code) 
-    # time_elapsed could be moved to the outside and just passed in 
-    # (still found with same function), should it be generally?)"""
-    #find past tense of label (eg "accept" -> "accepted")
-    past_tense_label = find_past_tense_label(label)
+    cut_timestamp = get_time_elapsed_str(start_time)  # q/n: (if the thing calling this were a normal piece of code) time_elapsed could be moved to the outside and just passed in (still found with same function), should it be generally?)
+    
+    past_tense_label = find_past_tense_label(label)  #find past tense of label (eg "accept" -> "accepted")
     
     #modify segments done if needed
     if label == "accept": segments_done += 1
     elif label == "retake accepted": segments_done += -1
 
-    #modify edited_vid_projections_list
-    if label == "accept":
-        change_in_projection = float(time_elapsed) - float(last_cut_timestamp)
-        new_projection = edited_vid_length_projections_history_queue[-1] + change_in_projection
+    #modify edited_vid_projections_list & get current projection
+    projected_final_vid_length = modify_projected_final_vid_length_history_and_return_current(label, settings_dict, cut_timestamp)
+    #these things could have a shorter name lol and possibly the modify & return in 1 func is bad form. Idk what to do though
         
-        edited_vid_length_projections_history_queue.append(new_projection)
-        
-        #keep the list/queue from getting too long based on retake accepted limit
-        retake_limit = settings_dict["Retake Accepted Limit (0-99/no)"]
-        if retake_limit != "no" and len(edited_vid_length_projections_history_queue) > int(retake_limit):
-            del edited_vid_length_projections_history_queue[0]
-    if label == "retake accepted":
-        if len(edited_vid_length_projections_history_queue) > 1:  #todo may need to make sure the settings number isnt off by one
-            edited_vid_length_projections_history_queue.pop() #now the most recent one is the previously second to last one
-        else:
-            print("too many retakes!")
-            segments_done += 1 #this is temp I really got to go I will rework this
-            return #exit out of program
-            #may want to move this up to the top & out of this potential seperate function for better form. Whole thing needs to be cleaned up but i am out of time for today
     
-    last_cut_timestamp = time_elapsed
-    #build the to-print string based on settings & the to-write (in file) string #Q/N: does this really need to be a func?
-    to_print_str = build_to_print_str(settings_dict, time_elapsed, past_tense_label, segments_done, edited_vid_length_projections_history_queue)
-    to_write_str = time_elapsed + "\t" + past_tense_label + "\n"
+    
+    #build the to-print string based on settings & the to-write (in file) string   
+    to_print_str = build_to_print_str(settings_dict, cut_timestamp, past_tense_label, segments_done, projected_final_vid_length)
+    to_write_str = cut_timestamp + "\t" + past_tense_label + "\n"
 
-    #perform the final outputs
+    last_cut_timestamp = cut_timestamp #needs to be done after modify projection
+
+    #perform the final outputs    #q/n should this be cut the other way
     print(to_print_str)
     output_file.write(to_write_str)
 
-def build_to_print_str(settings_dict, time_elapsed, past_tense_label, segments_done, edited_vid_length_projections_history_queue):
+def modify_projected_final_vid_length_history_and_return_current(label, settings_dict, cut_timestamp):
+    global projected_final_vid_length_history_queue
+    if label == "accept":
+        change_in_projection = float(cut_timestamp) - float(last_cut_timestamp)
+        new_projection = projected_final_vid_length_history_queue[-1] + change_in_projection
+        projected_final_vid_length_history_queue.append(new_projection)
+        
+        #keep the list/queue from getting too long based on retake accepted limit #may not be neccisary
+        retake_limit = settings_dict["Retake Accepted Limit (0-99/no)"]
+        if retake_limit != "no" and len(projected_final_vid_length_history_queue) > int(retake_limit):
+            del projected_final_vid_length_history_queue[0]
+        #retake limit,
+    elif label == "retake accepted":
+        projected_final_vid_length_history_queue.pop() #now the most recent one is the previously second to last one
+        #this can't run out of things to pop since we check for that at top of function
+    
+    return projected_final_vid_length_history_queue[-1]
+
+def build_to_print_str(settings_dict, time_elapsed, past_tense_label, segments_done, projected_final_vid_length):
     to_print_str = ""
     to_print_str += time_elapsed
     to_print_str += "\t" + past_tense_label
@@ -143,8 +151,7 @@ def build_to_print_str(settings_dict, time_elapsed, past_tense_label, segments_d
     elif settings_dict["Include completed segment count (long/short/no)"] == "long":
         to_print_str += "\t" + str(segments_done) + "todo: put the detail back in"
     if settings_dict["Include projected final vid length (yes/no)"] == "yes":    #todo: consider long/short
-        projected_final_length = edited_vid_length_projections_history_queue[-1]
-        to_print_str += "\t" + str(projected_final_length)
+        to_print_str += "\t" + truncate_number_str(projected_final_vid_length, 2)
     return to_print_str
 
 def find_past_tense_label(label):
@@ -152,7 +159,7 @@ def find_past_tense_label(label):
     if label == "accept": past_tense_label = "Accepted"
     elif label == "reject": past_tense_label = "Rejected"
     elif label == "retake accepted": past_tense_label = "Retake A."
-    elif label == "end": past_tense_label = "Ended"
+    elif label == "end": past_tense_label = "Ended   "
     return past_tense_label
     
     
@@ -161,14 +168,19 @@ def find_past_tense_label(label):
 
 def get_time_elapsed_str(start_time):
     time_elapsed = time.time() - start_time
-    truncated_time_elapsed = int(time_elapsed * 100) / 100
+    return truncate_number_str(time_elapsed,2)
+
+def truncate_number_str(number, digits_after_decimal):
+    multiplier = 10 ** digits_after_decimal # to the power of
+    num = float(number) #just in case
+    truncated_num = int(num * multiplier)  /  multiplier  #eg x = 25.54321: x=(x*100)=2554.321| x=(int(x)) = 2554| x = x/100 = 25.54
     
-    #make the decimals place have 2 digits if it has 1 (might be a better way to do this)
-    semifinal_string = str(truncated_time_elapsed)
-    if len(semifinal_string.split(".")[1]) <2:
+    #make the decimals place have the appropriate number of digits if it has less (might be a better way to do this)
+    semifinal_string = str(truncated_num)
+    while len(semifinal_string.split(".")[1]) < digits_after_decimal:
         semifinal_string += "0"
 
-    return str(semifinal_string)
+    return semifinal_string
     
     
 def get_hotkeys_dict():
@@ -180,10 +192,14 @@ def get_hotkeys_dict():
 def get_settings_dict():
     #In file will be under Record Mode Settings
     settings_dict = {"Include completed segment count (long/short/no)" : "short",
-                    "Include projected final vid length (yes/no)": "yes", #WIP
+                    "Include projected final vid length (yes/no)" : "yes",
+                    "Projected final vid length display (s, m/s)" : "m/s",
                     "Retake Accepted Limit (0-99/no)" : "no",
                     "Quick >>>Info after starting (yes/no)" : "yes"}
     return settings_dict
+    # Settings notes:
+    # - need a setting for seconds/minutes:seconds
+    # - may replace this 
 
 def ask_for_output_file_name(): 
     output_file = input("enter the name of the file to write to (no extention): ")+".txt"
