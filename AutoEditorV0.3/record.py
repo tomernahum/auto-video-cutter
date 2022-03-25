@@ -20,9 +20,9 @@ import keyboard
 #Q/N: global vars are apparently bad form but I don't think I can pass / return it (there could be a way actually)with the keyboard module I'm using... So I will put the global statement at the top so you know what modifies it... | I've also been head someone say that if your function requires a lot of inputs it's not doing one thing well enough? Well where should those inputs go the main code?
 segments_done = 0
 projected_final_vid_length_history_queue = [0] #could be replaced with deque 
-#^last item is the most recent one (for printing), other items are history (need it when retake a. ing)
-#this is used for reverting the time after a retake a. is called. The length of this has to do with the setting max retakes
-#Q/N/todo: I feel like the implementation of this could stand to be a little clearer, 
+    #^last item is the most recent one (for printing), other items are history (need it when retake a. ing)
+    #this is used for reverting the time after a retake a. is called. The length of this has to do with the setting max retakes
+    #Q/N/todo: I feel like the implementation of this could stand to be a little clearer, 
 last_cut_timestamp = "0"
 
 #Main code that is called on from main.py
@@ -61,18 +61,21 @@ def start_record_timestamps_mode():
 
     #add hotkeys with keyboard module
     add_hotkey_detection(hotkeys_dict, start_time, output_file, settings_dict)
-    #each hotkey executes a function basically, (those being mark_cut() and WIPmark_effect())
+        #each hotkey executes a function basically, (those being mark_cut() and WIPmark_effect())
+    
+    #todo: maybe add running time count
     
     #wait till stop hotkey is pressed (hotkeys are detected while waiting)
     keyboard.wait(hotkeys_dict["end recording"]) 
     
+    #Finish up: mark ending cut, write info footer in file, and close file
     mark_cut("end", start_time, output_file, settings_dict)
-    projected_final_time = projected_final_vid_length_history_queue[-1]
-    output_file.write(f"EOF segments done: {segments_done}, projected final time: {projected_final_time} \n")#write segments/projected time summary at bottom of file
+    projected_final_vid_length = projected_final_vid_length_history_queue[-1]
+    output_file.write(f"EOF segments done: {segments_done}, projected final time: {projected_final_vid_length} \n")#write segments/projected time summary at bottom of file
     output_file.close()
     print("File Saved. Goodbye")
     
-    #maybe todo "would you like to edit it now?"
+    #todo "would you like to edit it now?"
 
 def add_hotkey_detection(hotkeys_dict, start_time, output_file, settings_dict):
     #keyboard.add_hotkey(hotkeys_dict["accept"]) reject, 3rd
@@ -95,7 +98,7 @@ def mark_cut(label, start_time, output_file, settings_dict):
     global projected_final_vid_length_history_queue #very long name
     global last_cut_timestamp 
     #Q/N: I am checking the label 3 times to seperate the operations. Should I just do this once for efficiency or is this better for readability
-    
+
     if label == "retake accepted" and len(projected_final_vid_length_history_queue) <= 1: 
         print("too many retakes!")
         return #abandon the cut
@@ -123,6 +126,7 @@ def mark_cut(label, start_time, output_file, settings_dict):
     #perform the final outputs    #q/n should this be cut the other way
     print(to_print_str)
     output_file.write(to_write_str)
+
 
 def modify_projected_final_vid_length_history_and_return_current(label, settings_dict, cut_timestamp):
     global projected_final_vid_length_history_queue
