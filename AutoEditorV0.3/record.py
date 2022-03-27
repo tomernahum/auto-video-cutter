@@ -78,6 +78,7 @@ def start_record_timestamps_mode():
     
     #todo "would you like to edit it now?"
 
+#todo onhotkey then pass timestamp into mark_cut
 def add_hotkey_detection(hotkeys_dict, start_time, output_file, settings_dict):
     #keyboard.add_hotkey(hotkeys_dict["accept"]) reject, 3rd
     
@@ -91,6 +92,7 @@ def add_hotkey_detection(hotkeys_dict, start_time, output_file, settings_dict):
         else:
             keyboard.add_hotkey(literal_hotkey_str, print, args=["temp - pressed ", literal_hotkey_str])
             #this will be custom effects markers&doers hotkeys
+
 
 
 # Is called from pressing hotkeys (and right at end) prints and writes to file timestamp & cut label + prints and tracks segments_done & edited_vid_length
@@ -178,7 +180,9 @@ def build_to_print_str(settings_dict, time_elapsed, past_tense_label, segments_d
     return to_print_str
 
 def find_past_tense_label(label):
+    #todo pretty sure this should be switch case Edit: match case and apparently my python is too old for it?
     past_tense_label = ""
+
     if label == "accept": past_tense_label = "Accepted"
     elif label == "reject": past_tense_label = "Rejected"
     elif label == "retake accepted": past_tense_label = "Retake A."
@@ -228,3 +232,6 @@ def ask_for_output_file_name():
     output_file = input("enter the name of the file to write to (no extention): ")+".txt"
     return output_file
 
+
+if __name__ == '__main__':
+    start_record_timestamps_mode()
