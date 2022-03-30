@@ -15,6 +15,7 @@
 
 #
 import datetime
+import os
 import time
 import keyboard
 
@@ -229,8 +230,17 @@ def get_settings_dict():
     # - may replace this 
 
 def ask_for_output_file_name(): 
-    output_file = input("enter the name of the file to write to (no extention): ")+".txt"
-    return output_file
+    user_input = input("enter the name of the file to write to (no extention): ")
+    file_name = user_input + ".txt"
+    folder_name = "Timestamp Files"
+    
+    #go into subfolder - semi broken
+    fileDir = os.path.dirname(os.path.realpath('__file__'))     
+    tmp = folder_name+'/'+ file_name
+    file_path = os.path.join(fileDir, tmp) #this does n
+    
+    return file_path  #only works if you are already in the same directory as the python file: not if you click the play button in VSCode
+    return file_name
 
 
 if __name__ == '__main__':
