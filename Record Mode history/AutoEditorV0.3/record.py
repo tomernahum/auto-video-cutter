@@ -239,7 +239,7 @@ def ask_for_output_file_name():
     tmp = folder_name+'/'+ file_name
     file_path = os.path.join(fileDir, tmp) #this does n
     
-    return file_path  #only works if you are already in the same directory as the python file: not if you click the play button in VSCode
+    #return file_path  #only works if you are already in the same directory as the python file: not if you click the play button in VSCode
     return file_name
 
 

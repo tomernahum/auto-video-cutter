@@ -1,0 +1,27 @@
+timestamps
+
+#we need to have multiple effects be proccessed that change the length of the video
+
+[effect], incl cut, would have a method of it adjust the relative timestamp of every other timestamp 
+
+def __ effect: (probably would be a subclasses)
+
+    cut effect (we could convert the retake stuff into cut effects):
+        timestamps before = no change
+        timestamps after = - length of segment
+        priority = 1 #lower number = higher priority
+        timestamps in between  = continuas split   #^if there was a clip in between the cut that needed to be affected, it would be split around those clips so we can update the timestamps
+        
+        clip itself -> process -> return nothing
+
+    speed up effect:
+        timestamps before = no change
+        timestamps after = -(original length of clip) + new(length of clip)
+        timestamps in_between
+        priority 2
+        #so we would speed up the clip 
+
+        clip itself -> proccess -> return sped up clip
+
+    eg 0-10: speed.   5-7: cut
+    we go through cronilogically 
