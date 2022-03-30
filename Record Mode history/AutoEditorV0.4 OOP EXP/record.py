@@ -1,9 +1,12 @@
 
+
 import keyboard
 import time
 
 class CutAction:
-    test = 0
+    #static vars (essentially global) - apperently bad
+    segments_done = 0
+    
     def __init__(self, timestamp):
         
         #self.timestamp = timestamp
@@ -27,7 +30,48 @@ class CutAction:
         output = self.segments_done_blurb_template
         output = output.replace("[[segments_done]]", str(segments_done))
         output = output.replace("[[segments_done_+1]]", str(segments_done + 1))
-        return output
+    
+
+
+    def mark_cut_action(self, output_file):
+        #should this be here or standalone?
+        
+        #Update segments_done
+        CutAction.segments_done += self.get_segments_done_change()
+        #check for over-retakes
+        if CutAction.segments_done == -1 or False:
+            CutAction.segments_done += 1
+            print("To many retakes!")
+            return
+        
+
+        #build print and file write strings
+        class ToPrintString:
+            def __init__(self, initial_string):
+                self.string = initial_string
+            def __str__(self):
+                return self.string
+            
+            def add(self, to_add):
+                if self.string != "": self.string += "\t"  #could replace this with different system of tabeling
+                self.string += str(to_add)
+        
+        to_print = ToPrintString("")
+        to_print.add(self.get_original_timestamp())
+        to_print.add(self.get_past_tense_label())
+        
+        if Settings.print_short_segments_done: to_print.add(segments_done)
+        elif Settings.print_long_segments_done: to_print.add(self.get_segments_done_blurb(segments_done))
+        
+        
+        to_write = ToPrintString("") #misnomer
+        to_write.add(self.get_original_timestamp()) 
+        to_write.add(self.get_past_tense_label())
+        
+        #write to file and print
+        output_file.write(str(to_write) + "\n")
+        print(to_print)    
+        
 
 # we could make CutAction(action_type) if action_type=accept: set appropriate variabls
 # or we could mak subclasses 
@@ -74,6 +118,8 @@ class Settings:
 
     option_var = "long"
     print_quick_starting_info = True #
+    print_short_segments_done = False
+    print_long_segments_done = True
     #tbdone
     
     start_hotkey = "ctrl+shift+\\"
@@ -88,9 +134,8 @@ class Settings:
         pass #will find user specified settings from file or whereva, for now just do manually above
 
 
-def get_current_time():
-    global START_TIME
-    return truncate_number_str(time.time() - START_TIME, 2)
+def get_current_time(start_time):
+    return truncate_number_str(time.time() - start_time, 2)
 def truncate_number_str(number, digits_after_decimal):
     multiplier = 10 ** digits_after_decimal # to the power of
     num = float(number) #just in case
@@ -104,15 +149,18 @@ def truncate_number_str(number, digits_after_decimal):
     return semifinal_string
 
 
-def on_cut_hotkey_pressed(action_type):
-    timestamp = get_current_time() 
+def on_cut_hotkey_pressed(action_type, output_file, start_time):
+    timestamp = get_current_time(start_time) 
     
     cut_action = None
     if action_type == "accept": cut_action = AcceptCut(timestamp)
     elif action_type == "reject": cut_action = RejectCut(timestamp)
     elif action_type == "retake accepted": cut_action = RetakeAcceptedCut(timestamp)
     
-    mark_cut_action(cut_action)
+    #mark_cut_action(cut_action)
+    cut_action.mark_cut_action(output_file)
+
+
 
 #nothing really changes in CutAction class and also this method could be part of it
 def mark_cut_action(cut_action):
@@ -144,8 +192,8 @@ def mark_cut_action(cut_action):
     to_print.add(cut_action.get_original_timestamp())
     to_print.add(cut_action.get_past_tense_label())
     
-    if False: to_print.add(segments_done)
-    elif True: to_print.add(cut_action.get_segments_done_blurb(segments_done))
+    if Settings.print_short_segments_done: to_print.add(segments_done)
+    elif Settings.print_long_segments_done: to_print.add(cut_action.get_segments_done_blurb(segments_done))
     
     
     to_write = ToPrintString("") #misnomer
@@ -153,7 +201,7 @@ def mark_cut_action(cut_action):
     to_write.add(cut_action.get_past_tense_label())
     
     #write to file and print
-    output_file.write(str(to_write) + "\n")
+    CutAction.output_file.write(str(to_write) + "\n")
     print(to_print)
 
 
@@ -161,29 +209,31 @@ def mark_cut_action(cut_action):
 
 def main():
     #wip
+    #Q/N: Should segments_done &or output_file be stored in a static class or global
     Settings.init_settings() #settings are stored in settings class as static variables
 
     def ask_user_for_file():
-        filename = input("Enter the name of the file pls (no prefix)") + ".txt"
+        filename = input("enter the name of the file to write to (no extention): ") + ".txt"
         return open(filename, 'w')
-    CutAction.output_file = ask_user_for_file()
+    output_file = ask_user_for_file()
+    
     CutAction.segments_done = 0  #we keep track of accepted segments for printing to the user
     #...
     
     
     print(f"Press [{Settings.start_hotkey}] to start recording...   ([{Settings.stop_hotkey}] to end)")
     keyboard.wait(Settings.start_hotkey)
-    CutAction.start_time = time.time()
+    start_time = time.time()
     
     if Settings.print_quick_starting_info: 
         print(">>> Info:   to be put in")
     print("Started")
 
-    keyboard.add_hotkey(Settings.accept_hotkey, on_cut_hotkey_pressed, ["accept"])
-    keyboard.add_hotkey(Settings.reject_hotkey, on_cut_hotkey_pressed, ["reject"])
-    keyboard.add_hotkey(Settings.retake_accepted_hotkey, on_cut_hotkey_pressed, ["retake accepted"])
+    keyboard.add_hotkey(Settings.accept_hotkey, on_cut_hotkey_pressed, ["accept", output_file, start_time])
+    keyboard.add_hotkey(Settings.reject_hotkey, on_cut_hotkey_pressed, ["reject", output_file,  start_time])
+    keyboard.add_hotkey(Settings.retake_accepted_hotkey, on_cut_hotkey_pressed, ["retake accepted", output_file,  start_time])
     
-    keyboard.wait(Settings.stop_hotkey)
+    keyboard.wait(Settings.stop_hotkey, output_file)
     
     #mark_cut_action( EndCut(get_current_time()) )
     output_file.close()
@@ -194,7 +244,9 @@ def main():
 
 
 if __name__ == "__main__":
-
+    main()
+    
+"""
     output_file = open("1.txt",'w') #this too (read next comment first) except this gets closed so
     
     segments_done = 0
@@ -219,5 +271,5 @@ if __name__ == "__main__":
     mark_cut_action( EndCut(get_current_time()) )
     output_file.close()
     print("Ended")
-
+    """
     
