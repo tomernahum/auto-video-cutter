@@ -1,13 +1,14 @@
-from inspect import _Object
 from moviepy.editor import *
 from moviepy.video import fx
 
-class Constants:
+
+class Constants: 
     accept_ca_label = "Accepted"         #ca means cut action, which itself might be confusing for all i know, good thing about constants though is I can Rename Refactor them easily
     reject_ca_label = "Rejected"
     retake_accepted_ca_label = "Retake A."
     end_ca_label = "Ended"
     ca_set = {accept_ca_label, reject_ca_label, retake_accepted_ca_label, end_ca_label}
+
 
 
 class Segment:
@@ -39,7 +40,7 @@ class Segment:
         output = effect_object.apply_effect(self.VFC)
         self.VFC = output
     
-    def apply_all_effects(self):
+    def apply_all_effects(self):    #Q/N: is this the best way of doing this?
         #WIP: may have to add priorities or something
         for effect_object in self.effects_list:
             self.apply_effect_to_own_VFC(effect_object)
@@ -52,6 +53,16 @@ class Effect:
     def apply_effect(self, VFC:VideoFileClip) -> VideoFileClip:
         return VFC.fx(vfx.blackwhite)
 
+class Cut(Effect):
+    def apply_effect(self, VFC:VideoFileClip):
+        #return None
+        return VFC.subclip(0,0)
+
+class Accepted(Effect):
+    def apply_effect(self, VFC: VideoFileClip) -> VideoFileClip:
+        return VFC
+    #doesn't do anything
+
 class Greyscale(Effect):
     def __init__(self, intensity):
         self.intensity = intensity #example
@@ -59,14 +70,22 @@ class Greyscale(Effect):
     def apply_effect(self, VFC:VideoFileClip) -> VideoFileClip:
         return VFC.fx(vfx.blackwhite) #intensity was just an example
 
-class Cut(Effect):
-    def apply_effect(self):
-        return None
+#...
 
-class Accepted(Effect):
+class DynamicVfxEffect(Effect):  #WIP 4 later
+    #WIP: I want it to let you put in ur own effect string and it will do it if it's in the vfx library, end users could ad these in a config file based on movypie docs
+    def __init__(self, vfx_effect):
+        self.vfx_effect = vfx_effect
+        #test if this is a real effect and do something if it isnt
     def apply_effect(self, VFC: VideoFileClip) -> VideoFileClip:
-        return VFC
-    pass #doesn't do anything
+        #return VFC.fx(vfx.)
+        pass
+
+
+
+
+
+
 
 
 
@@ -77,7 +96,17 @@ def start_process_mode(): #main
     timestamps_file = open(timestamps_file, 'r')
     
     segments_list = get_segments_list(timestamps_file, main_VFC)
+    VFC_list = []
+    for segment in segments_list:
+        segment.apply_all_effects()
+        vfc = segment.get_VFC()
+        
+        VFC_list.append(vfc)
+        #maybe delete the segment todo, also could make it so that it finds & effect-applies segments in chunks not seperatly
 
+    output = concatenate_videoclips(VFC_list)
+    
+    output.write_videofile("test2.mp4")
 
     main_VFC.close()
 
@@ -103,6 +132,10 @@ def get_segments_list(timestamps_file, main_VFC):
     #get start_stop action effects & mesh all the effects
     
 
+
+    return segments_list
+    
+
 def get_cut_and_keep_segments_list(timestamps_file, main_VFC):
     segments_list = []
 
@@ -123,6 +156,7 @@ def get_cut_and_keep_segments_list(timestamps_file, main_VFC):
             segment.add_effect(Cut())
         elif label == Constants.accept_ca_label:
             segment.add_effect(Accepted())   #this effect doesn't do anything now
+        
         elif label == Constants.retake_accepted_ca_label:
             segment.add_effect(Cut())  #cut out the segment leading up to retake a
             for segment2 in reversed(segments_list): #find the last accepted segment and change it to cut
@@ -135,11 +169,11 @@ def get_cut_and_keep_segments_list(timestamps_file, main_VFC):
         last_timestamp = timestamp
 
     
-    for segment in segments_list:
-        x = ""
-        if segment.is_cut(): x = "cut"
-        else: x = "kept"
-        print (segment.raw_start,"-",segment.raw_end,":",x)
+    #for segment in segments_list:
+    #    x = ""
+    #    if segment.is_cut(): x = "cut"
+    #    else: x = "kept"
+    #    print (segment.raw_start,"-",segment.raw_end,":",x)
 
     return segments_list
     
@@ -150,3 +184,6 @@ def get_cut_and_keep_segments_list(timestamps_file, main_VFC):
 
 if __name__ == "__main__":
     start_process_mode()
+
+#possible bug: seems to wait 2 frames after the reject or retake accepted
+# command shows up in the recording of the terminal after pressing accepted before cutting
