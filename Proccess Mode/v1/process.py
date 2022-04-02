@@ -1,3 +1,4 @@
+import time
 from moviepy.editor import *
 from moviepy.video import fx
 
@@ -12,10 +13,10 @@ class Constants:
 
 
 class Segment:
-    def __init__(self, t_start, t_end, parent_VFC, effects_list):  #Q/N, optimization: parent_VFC ideally would just be a pointer to main VFC, not a copy, so i guess it should be a global variable
+    def __init__(self, t_start, t_end, parent_VFC, effects_list):  #Q/N, optimization: parent_VFC ideally would just be a pointer to main VFC, not a copy, I think this is what it already is? but I'm not sure. Should it be a class var?
         self.raw_end = t_end
         self.raw_start = t_start
-        self.VFC = parent_VFC.subclip(t_start, t_end)
+        self.VFC = parent_VFC.subclip(t_start, t_end)     #optimize: probably what is making things slow
         self.effects_list = effects_list  #effects will be their own objects
 
     def get_effects_list(self):
@@ -25,7 +26,7 @@ class Segment:
     
     def add_effect(self, effect):
         self.effects_list.append(effect)
-    def remove_effect(self, effect_to_remove):      #need to test if this works, if not can do isinstance
+    def remove_effect(self, effect_to_remove):      
         for active_effect in self.get_effects_list():
             if isinstance(active_effect, effect_to_remove):
                 self.effects_list.remove(active_effect)
@@ -73,7 +74,7 @@ class Greyscale(Effect):
 #...
 
 class DynamicVfxEffect(Effect):  #WIP 4 later
-    #WIP: I want it to let you put in ur own effect string and it will do it if it's in the vfx library, end users could ad these in a config file based on movypie docs
+    #WIP: I want it to let you put in ur own effect string and it will do it if it's in the vfx library, end users could add these in a config file based on movypie docs
     def __init__(self, vfx_effect):
         self.vfx_effect = vfx_effect
         #test if this is a real effect and do something if it isnt
@@ -91,39 +92,37 @@ class DynamicVfxEffect(Effect):  #WIP 4 later
 
 def start_process_mode(): #main
     #open timestamps file reader & Master Video File Clip
-    video_file_name, timestamps_file = get_file_names_from_user()
+    video_file_name, timestamps_file_name = get_file_names_from_user()
     main_VFC = VideoFileClip(video_file_name)
-    timestamps_file = open(timestamps_file, 'r')
+    timestamps_file = open(timestamps_file_name, 'r')
     
+    #convert timestamps into segments (each segment can have multiple effects)
     segments_list = get_segments_list(timestamps_file, main_VFC)
-    VFC_list = []
+    
+    #apply the effects to the video file clips in the segment objects
+    processed_VFCs_list = []
     for segment in segments_list:
         segment.apply_all_effects()
-        vfc = segment.get_VFC()
+        vfc = segment.get_VFC()   
         
-        VFC_list.append(vfc)
-        #maybe delete the segment todo, also could make it so that it finds & effect-applies segments in chunks not seperatly
+        processed_VFCs_list.append(vfc)
+        #todo maybe delete the segment, or seperate the proccessing and the extracting
+    
+    #todo could make it so that it builds the segments & applies effects to them in chunks of effects with overlapping segments not all at once so that if the file is super long it doesn't take up infinite memory
 
-    output = concatenate_videoclips(VFC_list)
+    output = concatenate_videoclips(processed_VFCs_list)
     
     output.write_videofile("test2.mp4")
 
     main_VFC.close()
 
-"""
-    segment = Segment( 10, 20, main_VFC, effects_list=[Greyscale(100)])
-    segment.apply_all_effects()
-    #segment.get_VFC().resize(width=500).preview()
-    
-    output = segment.get_VFC()
-    output.write_videofile("test.mp4")
-
-    print("Done!")
-"""
 
 
-def get_file_names_from_user():
+def get_file_names_from_user():  
     return "test_vid.mkv", "realtest.txt"
+    vid_file_name = input("Enter the name of the video file to process: ")
+    timestamps_file_name = input("Enter the name of the timestamps file with which to process: ")
+    return vid_file_name, timestamps_file_name
 
 def get_segments_list(timestamps_file, main_VFC):
     segments_list = []
@@ -146,6 +145,7 @@ def get_cut_and_keep_segments_list(timestamps_file, main_VFC):
         if split_line[1] in Constants.ca_set:
             cut_action_timestamps_list.append(split_line)
     
+
     #put cut & none segments in segments_list
     last_timestamp = 0
     for timestamp, label in cut_action_timestamps_list: 
