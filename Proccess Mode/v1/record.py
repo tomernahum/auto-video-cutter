@@ -392,9 +392,6 @@ class Timer_also_not_yet_in_use:
     def start_timer(self, start_time=time.time()):
         self.start_time = start_time
         self.time_before_pause = 0
-    
-    def is_paused(self): return paused
-
 
     def get_current_time(self):
         if paused:
@@ -402,6 +399,11 @@ class Timer_also_not_yet_in_use:
         else:
             current_time = (time.time() - start_time) + time_before_pause
         return truncate_number_str(current_time, 2)
+    
+    def get_formatted_time(self):
+        return self.get_current_time()
+
+    def is_paused(self): return paused
     
     def toggle_pause(self):
         if paused: #unpause
