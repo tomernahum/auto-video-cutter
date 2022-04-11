@@ -380,7 +380,7 @@ class Timer_not_in_use:
             return current_time
 
 class Timer_also_not_yet_in_use:
-    start_time
+    start_time #really time since last pause
     time_before_pause
     paused
     
@@ -392,14 +392,29 @@ class Timer_also_not_yet_in_use:
     def start_timer(self, start_time=time.time()):
         self.start_time = start_time
         self.time_before_pause = 0
+    
+    def is_paused(self): return paused
 
 
-    def get_current_time():
+    def get_current_time(self):
         if paused:
             current_time = time_before_pause
         else:
-            current_time = time.time() - start_time + time_before_pause
+            current_time = (time.time() - start_time) + time_before_pause
         return truncate_number_str(current_time, 2)
+    
+    def toggle_pause(self):
+        if paused: #unpause
+            self.start_time = time.time()
+            self.paused = False
+        
+        else: #pause
+            self.paused = True
+            elapsed_time = time.time() - start_time
+            time_before_pause += elapsed_time 
+            start_time = None
+            
+    #add in functionality for estimated post-cut time (reject)
 
 
 
