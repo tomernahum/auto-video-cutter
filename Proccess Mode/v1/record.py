@@ -25,19 +25,58 @@ as I am essentially running 2 scripts at once (check for hotkeys & update live t
 
 
 
-
+import datetime
 from math import ceil
 import time
 import keyboard
 
 #global vars: #may organize some into classes or something
 global output_file
-global start_time
-global time_before_pause
-global paused
+global main_timer
 global ended 
+global printing_line
 global segments_done
 
+class Timer:
+    start_time = None#really time since last pause
+    time_before_pause = None
+    paused = None
+    
+    def __init__(self):
+        self.start_time = None
+        self.time_before_pause = None
+        self.paused = None
+        pass
+
+    def start_timer(self, start_time=time.time()):
+        self.start_time = start_time
+        self.time_before_pause = 0
+        self.paused = False
+
+    def get_current_time(self):
+        if self.paused:
+            current_time = self.time_before_pause
+        else:
+            current_time = (time.time() - self.start_time) + self.time_before_pause
+        return truncate_number_str(current_time, 2)
+    
+    def get_formatted_current_time(self):
+        return self.get_current_time()
+
+    def is_paused(self): return self.paused
+    
+    def toggle_pause(self):
+        if self.is_paused(): #unpause
+            self.start_time = time.time()
+            self.paused = False
+        
+        else: #pause
+            self.paused = True
+            elapsed_time = time.time() - self.start_time
+            self.time_before_pause += elapsed_time 
+            self.start_time = None
+            
+    #add in functionality for estimated post-cut time (reject)
 
 
 class CutAction:
@@ -87,12 +126,17 @@ class End(CutAction):
 
 #main
 def start_record_mode():
-    global start_time
+    global main_timer
     global segments_done
     global output_file
     
     output_file_name = get_output_file_name()
     output_file = open(output_file_name, "w")
+    
+    file_header = "Timestamps file for [autoeditor program] recorded on " + str(datetime.datetime.now())
+    output_file.write(file_header + "\n")
+
+    main_timer = Timer()
 
     segments_done = 0
     
@@ -100,12 +144,12 @@ def start_record_mode():
     start_hotkey = "ctrl+shift+\\"
     print(f"press [{start_hotkey}] to start recording")
     #keyboard.wait(start_hotkey)
-    start_time = time.time()
+    main_timer.start_timer()
     print("0.00    Started")
 
     
     #add hotkeys
-    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p"]
+    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\"]
     for hotkey in hotkey_list:
         keyboard.add_hotkey(hotkey, on_hotkey_press, args=[hotkey])
     
@@ -114,50 +158,49 @@ def start_record_mode():
     run_updating_display() #will run forever until ended = True
     
     #finish up
-    print("Wow!")
+    mark_cut_action(End(), main_timer.get_current_time())
+    footer = f"EOF. segments done: {segments_done}, projected final time: {None}"
+    output_file.write(footer)
     output_file.close()
 
 def run_updating_display():
     global ended  #these are changed (or "broadcasted") in the on_hotkey_press function
-    global paused
-    global time_before_pause
-    global start_time
+    global printing_line
+    global main_timer
     
     ended = False
-    paused = False
-    time_before_pause = 0
+    printing_line = False
+    
     
     if False: #toggle off running display - there will be a setting for this
         while not ended: time.sleep(0.1)
         return
     
     while True:
-        if not paused:
-            current_time = str(time.time() - start_time + time_before_pause) 
-        else:
-            current_time = time_before_pause
+        current_time = main_timer.get_formatted_current_time()
 
         to_print = ""
-        to_print += "Time Elapsed: " + truncate_number_str(current_time) 
-        if paused: to_print += "(P)"
+        to_print += "Time Elapsed: " + current_time 
+        if main_timer.is_paused(): to_print += "(P)"
         
-        to_print += "\tTime Accepted TODO: " + truncate_number_str(current_time) + str(paused) + str(ended)
+        to_print += "\tTime Accepted TODO: "  + str(main_timer.is_paused()) + str(ended)
         
-        to_print = replace_tabs_w_spaces(to_print)
-        print("\r" + to_print, end="")
+        #print the updating display
+        if not printing_line: #if a line is not being printed rn (cause it might override)
+            to_print = replace_tabs_w_spaces(to_print)
+            print("\r" + to_print, end="")
         
         if ended is True: 
             return
         
-        time.sleep(0.001)
+        time.sleep(0.005)
 
 
 
     
 
 def on_hotkey_press(hotkey):
-    global paused
-    global start_time
+    global main_timer
 
     #pause hotkey check
     if hotkey == "alt+p":
@@ -171,11 +214,11 @@ def on_hotkey_press(hotkey):
         return
     
     #don't run if recording is paused (pause key already checked for)
-    if paused is True: 
+    if main_timer.is_paused() is True: 
         return 
 
 
-    current_time = get_current_time()
+    current_time = main_timer.get_current_time()
     
     #run cut action
     if hotkey == "alt+q":
@@ -189,33 +232,21 @@ def on_hotkey_press(hotkey):
         return
     
     #effect
-    else:
+    elif False:
         pass
     
-    to_print = ""
-    to_print += truncate_number_str(time.time() - start_time + time_before_pause)
-    to_print += "\t"  #bug: \t does not overwrite updating display
-    to_print += hotkey
-    to_print += "\ttest"
-    print_over_updating_display(to_print)
+    else:
+        to_print = ""
+        to_print += main_timer.get_formatted_current_time
+        to_print += "\t" 
+        to_print += hotkey
+        to_print += "\ttest"
+        print_over_updating_display(to_print)
 
 def pause_or_unpause():
-    global paused
-    global time_before_pause
-    global start_time
-    
-    if paused is True: #unpause
-        start_time = time.time()
-        paused = False
-        #print_over_updating_display("Unpaused")
-        
-        
-    else:
-        paused = True
-        elapsed_time = time.time() - start_time
-        time_before_pause += elapsed_time 
-        start_time = None
-        #print_over_updating_display("Paused")
+    global main_timer
+    main_timer.toggle_pause()
+    #do anything else
 
 def mark_cut_action(cut_action:CutAction, timestamp):
     #segments done
@@ -259,18 +290,23 @@ def mark_cut_action(cut_action:CutAction, timestamp):
     to_write.add(cut_action.get_past_tense_label())
 
     print_over_updating_display(to_print.get_string())
-    output_file.write(to_write.get_string())
+    output_file.write(to_write.get_string() + "\n")
     
 
     
 
 
 
-def print_over_updating_display(string_to_print:str, min_len=70):
+def print_over_updating_display(string_to_print:str, min_len=70): #could use a better name maybe
+    global printing_line
+    
     to_print = replace_tabs_w_spaces(str(string_to_print)) #otherwise it doesn't overide the updating timer display
 
     print_fill = " " * (min_len - len(to_print))
+    
+    printing_line = True   #attempt at removing bug of occasional overwriting of this by updating display
     print("\r" + str(to_print) + print_fill)
+    printing_line = False
     
     return
 
@@ -325,98 +361,16 @@ if __name__ == "__main__":
 
 
 
-#Considering using this 
-#(to group the timer related functions and global vars, I wouldn't instansiate it... I guess maybe I could)
-class Timer_not_in_use:
-    start_time
-    time_before_pause
-    global paused
+
+def convert_to_h_m_s_format(secs_time):
+    minutes, seconds = divmod(secs_time, 60)
+    hours, minutes = divmod(minutes, 60)
     
-    @staticmethod
-    def truncate_number_str():
-        pass
-    
-    @staticmethod
-    def convert_to_mins_format(secs_time):
-        minutes, seconds = divmod(secs_time, 60) #returns division and remainder(modulus)
+    if hours == 0:
+        return f"{minutes}m{seconds}"
+    else:
+        return f"{hours}h{minutes}m{seconds}s"
 
-        return f"{minutes}m{seconds}s"
-    
-    @staticmethod
-    def convert_to_h_m_s_format(secs_time):
-        minutes, seconds = divmod(secs_time, 60)
-        hours, minutes = divmod(minutes, 60)
-        
-        if hours == 0:
-            return f"{minutes}m{seconds}"
-        else:
-            return f"{hours}h{minutes}m{seconds}s"
-
-
-    @staticmethod
-    def start_timer():
-        Timer.start_time = time.time()
-        Timer.time_before_pause = 0
-
-    @staticmethod
-    def pause_or_unpause():
-        pass
-
-    @staticmethod
-    def get_time():
-        if paused: current_time = time_before_pause
-        else: current_time = time.time() - start_time + time_before_pause #time since pause + time before pause
-        return current_time
-    
-    @staticmethod
-    def get_formatted_time(format="hms", digits_after_decimal=None):
-        current_time = Timer.get_time()
-        
-        current_time = Timer.truncate_number_str(current_time)
-
-        if format == "hms":
-            return Timer.convert_to_hms_format(current_time)
-        elif format == "secs":
-            return current_time
-
-class Timer_also_not_yet_in_use:
-    start_time #really time since last pause
-    time_before_pause
-    paused
-    
-    def __init__(self, start_time=time.time()):
-        self.start_time = start_time
-        self.time_before_pause = 0
-        #self.paused = True
-
-    def start_timer(self, start_time=time.time()):
-        self.start_time = start_time
-        self.time_before_pause = 0
-
-    def get_current_time(self):
-        if paused:
-            current_time = time_before_pause
-        else:
-            current_time = (time.time() - start_time) + time_before_pause
-        return truncate_number_str(current_time, 2)
-    
-    def get_formatted_time(self):
-        return self.get_current_time()
-
-    def is_paused(self): return paused
-    
-    def toggle_pause(self):
-        if paused: #unpause
-            self.start_time = time.time()
-            self.paused = False
-        
-        else: #pause
-            self.paused = True
-            elapsed_time = time.time() - start_time
-            time_before_pause += elapsed_time 
-            start_time = None
-            
-    #add in functionality for estimated post-cut time (reject)
 
 
 
