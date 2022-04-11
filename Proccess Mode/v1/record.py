@@ -60,9 +60,33 @@ class Timer:
             current_time = (time.time() - self.start_time) + self.time_before_pause
         return truncate_number_str(current_time, 2)
     
-    def get_formatted_current_time(self):
-        return self.get_current_time()
+    def skip_ahead(self, secs): self.time_before_pause += secs
 
+    def get_formatted_current_time(self):
+        return Timer.convert_to_h_m_s_format(float(self.get_current_time()))
+    
+    @staticmethod
+    def convert_to_h_m_s_format(secs_time, shorten_seconds_above_1_min=False):
+        secs_time = float(secs_time)
+        minutes, seconds = divmod(secs_time, 60)
+        hours, minutes = divmod(minutes, 60)
+        
+        minutes = int(minutes)
+        hours = int(hours)
+        seconds = truncate_number_str(seconds, 1)
+
+        if minutes == 0 and hours == 0:
+            return f"{seconds}s"
+        
+        if shorten_seconds_above_1_min is True:
+            seconds = int(float(seconds))
+        
+        if hours == 0:
+            return f"{minutes}m {seconds}s"
+        else:
+            return f"{hours}h {minutes} m{seconds}s"
+    
+    
     def is_paused(self): return self.paused
     
     def toggle_pause(self):
@@ -77,6 +101,9 @@ class Timer:
             self.start_time = None
             
     #add in functionality for estimated post-cut time (reject)
+
+class CutTimer(Timer):
+    pass
 
 
 class CutAction:
@@ -193,6 +220,13 @@ def run_updating_display():
         if ended is True: 
             return
         
+        #for testing
+        act = float(main_timer.get_current_time())
+        if  act > 5 and act < 6:
+            main_timer.skip_ahead(50)
+        elif act > 70 and act < 71:
+            main_timer.skip_ahead(600)
+
         time.sleep(0.005)
 
 
@@ -279,8 +313,10 @@ def mark_cut_action(cut_action:CutAction, timestamp):
                 self.string += "\t"
             self.string += str(to_add)
     
+    timestamp_to_print = Timer.convert_to_h_m_s_format(timestamp, shorten_seconds_above_1_min=True)
+
     to_print = StringBuilder("")
-    to_print.add(timestamp)
+    to_print.add(timestamp_to_print)
     to_print.add( cut_action.get_past_tense_label() )
     if False: to_print.add(segments_done)
     if True: to_print.add(cut_action.get_segments_done_blurb(segments_done))
@@ -323,16 +359,7 @@ def replace_tabs_w_spaces(input_string, tabstop = 8):
             result += " " * diff
         return result
 
-def get_current_time():
-    global start_time
-    global time_before_pause
-    global paused
-    
-    if paused:
-        current_time = time_before_pause
-    else:
-        current_time = time.time() - start_time + time_before_pause
-    return truncate_number_str(current_time, 2)
+
 
 
 def truncate_number_str(number, digits_after_decimal=2):
@@ -362,14 +389,7 @@ if __name__ == "__main__":
 
 
 
-def convert_to_h_m_s_format(secs_time):
-    minutes, seconds = divmod(secs_time, 60)
-    hours, minutes = divmod(minutes, 60)
-    
-    if hours == 0:
-        return f"{minutes}m{seconds}"
-    else:
-        return f"{hours}h{minutes}m{seconds}s"
+
 
 
 
