@@ -48,19 +48,24 @@ class Timer:
         self.paused = None
         pass
 
-    def start_timer(self, start_time=time.time()):
-        self.start_time = start_time
+    def start_timer(self, start_time="now"): 
+        if start_time == "now": self.start_time = time.time()
+        else: self.start_time = start_time
         self.time_before_pause = 0
         self.paused = False
+
+    def reset_timer(self, start_time="now"):
+        self.start_timer(start_time)
 
     def get_current_time(self):
         if self.paused:
             current_time = self.time_before_pause
         else:
             current_time = (time.time() - self.start_time) + self.time_before_pause
-        return truncate_number_str(current_time, 2)
+        return float(truncate_number_str(current_time, 2))
     
     def skip_ahead(self, secs): self.time_before_pause += secs
+
 
     def get_formatted_current_time(self):
         return Timer.convert_to_h_m_s_format(float(self.get_current_time()))
@@ -82,9 +87,9 @@ class Timer:
             seconds = int(float(seconds))
         
         if hours == 0:
-            return f"{minutes}m {seconds}s"
+            return f"{minutes}m:{seconds}s"
         else:
-            return f"{hours}h {minutes} m{seconds}s"
+            return f"{hours}h:{minutes}:m{seconds}s"
     
     
     def is_paused(self): return self.paused
@@ -102,8 +107,53 @@ class Timer:
             
     #add in functionality for estimated post-cut time (reject)
 
-class CutTimer(Timer):
+class CutTimer():
+    timer = Timer()  #Q/N this was easier to understand than a superclass, might actually be simple to change, this is basically just 3 variables
+    accepted_segment_times_list = []
+    #timer resets every segment, past timer counts are stored in list (kind of like start_time vs time_before_paused)
+
+    def __init__(self):
+        self.timer = Timer()
+        self.accepted_segment_times_list = []
+
+    def start_timer(self):
+        self.timer.start_timer()      #we could inherit class timer and just let these things be infferred
+    
+    def toggle_pause(self):
+        self.timer.toggle_pause()
+    
+    def is_paused(self): 
+        return self.timer.is_paused()
+    
+    def get_running_time(self):
+        running_time = self.timer.get_current_time()
+        for i in self.accepted_segment_times_list: 
+            running_time += i
+        return running_time
+
+    def cut_action(self, cut_action):  
+        if isinstance(cut_action, Accept):
+            self.accepted_segment_times_list.append(self.timer.get_current_time())
+        elif isinstance(cut_action, RetakeAccepted):
+           self.accepted_segment_times_list.pop()
+        else: #reject or ended
+            pass
+
+        
+        self.timer.reset_timer() #bug: doesnt seem to be working
+        
+    def get_formatted_current_time(self):
+        #return "|timer: " + str(self.timer.get_formatted_current_time()) + " total: " + Timer.convert_to_h_m_s_format(self.get_running_time())
+        
+        return Timer.convert_to_h_m_s_format(self.get_running_time())
+
+    
+    
+
     pass
+
+
+
 
 
 class CutAction:
@@ -125,14 +175,14 @@ class Accept(CutAction):
         self.action_type = "accept"
         self.past_tense_label = "Accepted"
         self.segments_done_change = +1 
-        self.segments_done_blurb_template = "[[segments_done]] segments accepted, now recording #[[segments_done_+1]]"   
+        self.segments_done_blurb_template = "[[segments_done]] segments accepted, now recording #[[segments_done_+1]]      "   
 
 class Reject(CutAction):
     def __init__(self):
         self.action_type = "reject"
         self.past_tense_label = "Rejected"
         self.segments_done_change = 0 
-        self.segments_done_blurb_template = "re-recording segment #[[segments_done_+1]]" 
+        self.segments_done_blurb_template = "re-recording segment #[[segments_done_+1]]                    " 
 
 class RetakeAccepted(CutAction):
     def __init__(self):
@@ -151,9 +201,10 @@ class End(CutAction):
 
 
 
-#main
-def start_record_mode():
+
+def start_record_mode(): #main
     global main_timer
+    global cut_timer
     global segments_done
     global output_file
     
@@ -164,15 +215,17 @@ def start_record_mode():
     output_file.write(file_header + "\n")
 
     main_timer = Timer()
+    cut_timer = CutTimer()  #time elapsed that made it into final vid / isn't cut
 
     segments_done = 0
     
     #wait for start key & start recording
     start_hotkey = "ctrl+shift+\\"
     print(f"press [{start_hotkey}] to start recording")
-    #keyboard.wait(start_hotkey)
+    keyboard.wait(start_hotkey)
     main_timer.start_timer()
-    print("0.00    Started")
+    cut_timer.start_timer()
+    print("0.0s    Started") #todo: should replace this with a phony mark_cut
 
     
     #add hotkeys
@@ -194,6 +247,7 @@ def run_updating_display():
     global ended  #these are changed (or "broadcasted") in the on_hotkey_press function
     global printing_line
     global main_timer
+    global cut_timer
     
     ended = False
     printing_line = False
@@ -205,12 +259,16 @@ def run_updating_display():
     
     while True:
         current_time = main_timer.get_formatted_current_time()
+        uncut_time = cut_timer.get_formatted_current_time()
 
         to_print = ""
-        to_print += "Time Elapsed: " + current_time 
-        if main_timer.is_paused(): to_print += "(P)"
         
-        to_print += "\tTime Accepted TODO: "  + str(main_timer.is_paused()) + str(ended)
+        to_print += "Recording Time: " + current_time
+        if main_timer.is_paused(): to_print += "(P)"
+        else: to_print += "   " #so the tabing is the same
+        
+        to_print += "\tAccepted Time: "  + uncut_time
+        
         
         #print the updating display
         if not printing_line: #if a line is not being printed rn (cause it might override)
@@ -221,11 +279,12 @@ def run_updating_display():
             return
         
         #for testing
-        act = float(main_timer.get_current_time())
-        if  act > 5 and act < 6:
-            main_timer.skip_ahead(50)
-        elif act > 70 and act < 71:
-            main_timer.skip_ahead(600)
+        if False:
+            act = float(main_timer.get_current_time())
+            if  act > 5 and act < 6:
+                main_timer.skip_ahead(50)
+            elif act > 70 and act < 71:
+                main_timer.skip_ahead(600)
 
         time.sleep(0.005)
 
@@ -279,7 +338,9 @@ def on_hotkey_press(hotkey):
 
 def pause_or_unpause():
     global main_timer
+    global cut_timer
     main_timer.toggle_pause()
+    cut_timer.toggle_pause()
     #do anything else
 
 def mark_cut_action(cut_action:CutAction, timestamp):
@@ -296,10 +357,12 @@ def mark_cut_action(cut_action:CutAction, timestamp):
     #check for too many retakes
     if segments_done == -1 or (False):
         segments_done += 1
-        print("To many retakes!")
+        print_over_updating_display("To many retakes!")
         return
 
-    #update estimated total vid time WIP
+    #update estimated total vid time
+    global cut_timer
+    cut_timer.cut_action(cut_action)
 
     #build to print string and to write string
     class StringBuilder:
@@ -320,6 +383,8 @@ def mark_cut_action(cut_action:CutAction, timestamp):
     to_print.add( cut_action.get_past_tense_label() )
     if False: to_print.add(segments_done)
     if True: to_print.add(cut_action.get_segments_done_blurb(segments_done))
+    if False: to_print.add(cut_timer.get_formatted_current_time())
+    if True: to_print.add("Edited Vid Time: " + cut_timer.get_formatted_current_time())
 
     to_write = StringBuilder("")
     to_write.add(timestamp)
