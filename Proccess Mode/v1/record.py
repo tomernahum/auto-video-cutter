@@ -116,6 +116,7 @@ class Timer:
     #add in functionality for estimated post-cut time (reject)
 
 class CutTimer():
+    #todo: look over cuttimer for any inconsistencies and consider making it inherent
     timer = Timer()  #Q/N this was easier to understand than a superclass, might actually be simple to change, this is basically just 3 variables
     accepted_segment_times_list = []
     #timer resets every segment, past timer counts are stored in list (kind of like start_time vs time_before_paused)
@@ -399,8 +400,7 @@ def mark_effect_action(effect_action:EffectAction, timer):
     #keep track of if effect is on or off
     #write timestamp and effect_name in file
     #print timestamp effect name & wether the effect is on or off
-        #todo: * maybe make print a func that takes in timestamp & message or message segments so it can be updated (this calling string builder & print_over_updating_display)
-        #todo maybe: make a timer for each effect &/or show effect status on updating display
+        #todo * maybe: make a timer for each effect &/or show effect status on updating display
     
     effect_name = effect_action.get_effect_name()
 
@@ -418,7 +418,7 @@ def mark_effect_action(effect_action:EffectAction, timer):
     on_or_off = lambda : ["Off","On"][int(effect_is_active)]
     to_print_list = [f"Toggled {effect_action.get_name_for_printing()}",
                     on_or_off()]
-    #to_print.append("Effect was on for {}")
+    #todo: effect stutus & timer display (replace active effect names with effects objects w timers)
     
     print_and_write_action(timer, to_write_list, to_print_list)
     
