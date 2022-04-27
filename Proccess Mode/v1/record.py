@@ -36,6 +36,7 @@ global main_timer
 global ended 
 global printing_line
 global segments_done
+global active_effect_names
 
 class Timer:
     start_time = None#really time since last pause
@@ -198,7 +199,22 @@ class End(CutAction):
         self.segments_done_change = 0
         self.segments_done_blurb_template = "total segments accepted: [[segments_done]]"
 
+class EffectAction:
+    def __init__(self):
+        self.effect_name = "Test Toggle Effect"
+        self.name_for_printing = "ToggleEffect"
+    def get_effect_name(self): return self.effect_name
+    def get_name_for_printing(self): return self.name_for_printing
 
+class Flip(EffectAction):
+    def __init__(self):
+        self.effect_name = "Flip"
+        self.name_for_printing = "Flip"
+
+class BlackWhite(EffectAction):
+    def __init__(self):
+        self.effect_name = "BlackWhite"
+        self.name_for_printing = "Black/White"
 
 
 
@@ -229,7 +245,7 @@ def start_record_mode(): #main
 
     
     #add hotkeys
-    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\"]
+    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\", "alt+1" "alt+2"] #todo: hotkeys added & defined in different places, not convienient for adding
     for hotkey in hotkey_list:
         keyboard.add_hotkey(hotkey, on_hotkey_press, args=[hotkey])
     
@@ -325,16 +341,11 @@ def on_hotkey_press(hotkey):
         return
     
     #effect
-    elif False:
-        pass
+    elif hotkey == "alt+1":
+        mark_effect_action(Flip(), current_time)
+    elif hotkey == "alt+2":
+        mark_effect_action(BlackWhite(), current_time)
     
-    else:
-        to_print = ""
-        to_print += main_timer.get_formatted_current_time
-        to_print += "\t" 
-        to_print += hotkey
-        to_print += "\ttest"
-        print_over_updating_display(to_print)
 
 def pause_or_unpause():
     global main_timer
@@ -350,7 +361,6 @@ def mark_cut_action(cut_action:CutAction, timestamp):
     
     #timestamp = get_current_time()
 
-    
     #update segments_done
     global segments_done 
     segments_done += cut_action.get_segments_done_change()
@@ -365,17 +375,6 @@ def mark_cut_action(cut_action:CutAction, timestamp):
     cut_timer.cut_action(cut_action)
 
     #build to print string and to write string
-    class StringBuilder:
-        def __init__(self, initial_string=""):
-            self.string = initial_string
-        
-        def get_string(self): return self.string
-        
-        def add(self, to_add):
-            if self.string != "":
-                self.string += "\t"
-            self.string += str(to_add)
-    
     timestamp_to_print = Timer.convert_to_h_m_s_format(timestamp, shorten_seconds_above_1_min=True)
 
     to_print = StringBuilder("")
@@ -392,8 +391,39 @@ def mark_cut_action(cut_action:CutAction, timestamp):
 
     print_over_updating_display(to_print.get_string())
     output_file.write(to_write.get_string() + "\n")
-    
 
+   
+active_effect_names = set() #would make this objects with timers in them if I wanted to display that elsewhere
+def mark_effect_action(effect_action:EffectAction, timestamp):
+    pass
+    #keep track of if effect is on or off
+    #write timestamp and effect_name in file
+    #print timestamp effect name & wether the effect is on or off
+        #todo: * maybe make print a func that takes in timestamp & message or message segments so it can be updated (this calling string builder & print_over_updating_display)
+        #todo maybe: make a timer for each effect &/or show effect status on updating display
+    
+    effect_name = effect_action.get_effect_name()
+
+    #keep track of whether the effect is on or off
+    global active_effect_names  
+    effect_is_active = effect_name in active_effect_names
+    if effect_is_active: active_effect_names.remove(effect_name)
+    else: active_effect_names.add(effect_name)
+
+    #write the timestamp & effect name in file
+    to_write = StringBuilder(timestamp)
+    to_write.add(effect_name)
+    output_file.write(to_write.get_string() + "\n")
+
+    #print the effect
+    timestamp_to_print = Timer.convert_to_h_m_s_format(timestamp, shorten_seconds_above_1_min=True) #todo streamline timestamp stuff # this is repeated code btw
+    to_print = StringBuilder(timestamp_to_print)
+    on_or_off = lambda : ["Off","On"][int(effect_is_active)]
+    to_print.add(f"Toggled {effect_action.get_name_for_printing()}")
+    to_print.add(on_or_off())
+    #to_print.add("Effect was on for {}")
+    print_over_updating_display(to_print.get_string())
+    
     
 
 
@@ -439,6 +469,17 @@ def truncate_number_str(number, digits_after_decimal=2):
 
     return semifinal_string
 
+
+class StringBuilder:
+        def __init__(self, initial_string=""):
+            self.string = str(initial_string)
+        
+        def get_string(self): return self.string
+        
+        def add(self, to_add):
+            if self.string != "":
+                self.string += "\t"
+            self.string += str(to_add)
 
 
 def get_output_file_name():
