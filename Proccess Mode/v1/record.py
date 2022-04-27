@@ -63,13 +63,20 @@ class Timer:
             current_time = self.time_before_pause
         else:
             current_time = (time.time() - self.start_time) + self.time_before_pause
-        return float(truncate_number_str(current_time, 2))
+        return Timer.trunc_time(current_time)
     
+    def get_current_time_trunc(self):
+        return Timer.trunc_time(self.get_current_time())
+
     def skip_ahead(self, secs): self.time_before_pause += secs
 
 
     def get_formatted_current_time(self):
-        return Timer.convert_to_h_m_s_format(float(self.get_current_time()))
+        return Timer.convert_to_h_m_s_format(float(self.get_current_time_trunc()))
+    
+    @staticmethod
+    def trunc_time(secs_time):
+        return float(truncate_number_str(secs_time, digits_after_decimal=2))
     
     @staticmethod
     def convert_to_h_m_s_format(secs_time, shorten_seconds_above_1_min=False):
@@ -127,14 +134,14 @@ class CutTimer():
         return self.timer.is_paused()
     
     def get_running_time(self):
-        running_time = self.timer.get_current_time()
+        running_time = self.timer.get_current_time_trunc()
         for i in self.accepted_segment_times_list: 
             running_time += i
         return running_time
 
     def cut_action(self, cut_action):  
         if isinstance(cut_action, Accept):
-            self.accepted_segment_times_list.append(self.timer.get_current_time())
+            self.accepted_segment_times_list.append(self.timer.get_current_time_trunc())
         elif isinstance(cut_action, RetakeAccepted):
            self.accepted_segment_times_list.pop()
         else: #reject or ended
@@ -245,7 +252,7 @@ def start_record_mode(): #main
 
     
     #add hotkeys
-    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\", "alt+1" "alt+2"] #todo: hotkeys added & defined in different places, not convienient for adding
+    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\", "alt+1", "alt+2"] #todo: hotkeys added & defined in different places, not convienient for adding
     for hotkey in hotkey_list:
         keyboard.add_hotkey(hotkey, on_hotkey_press, args=[hotkey])
     
@@ -254,7 +261,7 @@ def start_record_mode(): #main
     run_updating_display() #will run forever until ended = True
     
     #finish up
-    mark_cut_action(End(), main_timer.get_current_time())
+    mark_cut_action(End(), main_timer.get_current_time_trunc())
     footer = f"EOF. segments done: {segments_done}, projected final time: {None}"
     output_file.write(footer)
     output_file.close()
@@ -296,7 +303,7 @@ def run_updating_display():
         
         #for testing
         if False:
-            act = float(main_timer.get_current_time())
+            act = float(main_timer.get_current_time_trunc())
             if  act > 5 and act < 6:
                 main_timer.skip_ahead(50)
             elif act > 70 and act < 71:
@@ -327,24 +334,24 @@ def on_hotkey_press(hotkey):
         return 
 
 
-    current_time = main_timer.get_current_time()
+    current_time = main_timer.get_current_time_trunc()
     
     #run cut action
     if hotkey == "alt+q":
-        mark_cut_action(Accept(), current_time)
+        mark_cut_action(Accept(), main_timer)
         return
     elif hotkey == "alt+w":
-        mark_cut_action(Reject(), current_time)
+        mark_cut_action(Reject(), main_timer)
         return
     elif hotkey == "alt+e":
-        mark_cut_action(RetakeAccepted(), current_time)
+        mark_cut_action(RetakeAccepted(), main_timer)
         return
     
     #effect
     elif hotkey == "alt+1":
-        mark_effect_action(Flip(), current_time)
+        mark_effect_action(Flip(), main_timer)
     elif hotkey == "alt+2":
-        mark_effect_action(BlackWhite(), current_time)
+        mark_effect_action(BlackWhite(), main_timer)
     
 
 def pause_or_unpause():
@@ -354,7 +361,7 @@ def pause_or_unpause():
     cut_timer.toggle_pause()
     #do anything else
 
-def mark_cut_action(cut_action:CutAction, timestamp):
+def mark_cut_action(cut_action:CutAction, timer):
     #segments done
     #estimated total vid time
     #print: timestamp, past tense label, segments_done_blurb, total vid time left, 
@@ -374,28 +381,21 @@ def mark_cut_action(cut_action:CutAction, timestamp):
     global cut_timer
     cut_timer.cut_action(cut_action)
 
-    #build to print string and to write string
-    timestamp_to_print = Timer.convert_to_h_m_s_format(timestamp, shorten_seconds_above_1_min=True)
+    #build to print and to write lists & print/write with mark_action
+    to_write_list = [cut_action.get_past_tense_label()]
+    
+    to_print_list = []
+    to_print_list.append(cut_action.get_past_tense_label())
+    if True: to_print_list.append(cut_action.get_segments_done_blurb(segments_done))
+    elif False: to_print_list.append(segments_done)
+    if True: to_print_list.append("Edited Vid Time: " + cut_timer.get_formatted_current_time())
+    elif False: to_print_list.append(cut_timer.get_formatted_current_time())
 
-    to_print = StringBuilder("")
-    to_print.add(timestamp_to_print)
-    to_print.add( cut_action.get_past_tense_label() )
-    if False: to_print.add(segments_done)
-    if True: to_print.add(cut_action.get_segments_done_blurb(segments_done))
-    if False: to_print.add(cut_timer.get_formatted_current_time())
-    if True: to_print.add("Edited Vid Time: " + cut_timer.get_formatted_current_time())
-
-    to_write = StringBuilder("")
-    to_write.add(timestamp)
-    to_write.add(cut_action.get_past_tense_label())
-
-    print_over_updating_display(to_print.get_string())
-    output_file.write(to_write.get_string() + "\n")
+    print_and_write_action(timer, to_write_list, to_print_list)
 
    
 active_effect_names = set() #would make this objects with timers in them if I wanted to display that elsewhere
-def mark_effect_action(effect_action:EffectAction, timestamp):
-    pass
+def mark_effect_action(effect_action:EffectAction, timer):
     #keep track of if effect is on or off
     #write timestamp and effect_name in file
     #print timestamp effect name & wether the effect is on or off
@@ -406,26 +406,46 @@ def mark_effect_action(effect_action:EffectAction, timestamp):
 
     #keep track of whether the effect is on or off
     global active_effect_names  
-    effect_is_active = effect_name in active_effect_names
-    if effect_is_active: active_effect_names.remove(effect_name)
+    effect_was_active = effect_name in active_effect_names
+    if effect_was_active: active_effect_names.remove(effect_name)
     else: active_effect_names.add(effect_name)
+    effect_is_active = not effect_was_active
 
-    #write the timestamp & effect name in file
-    to_write = StringBuilder(timestamp)
-    to_write.add(effect_name)
-    output_file.write(to_write.get_string() + "\n")
 
-    #print the effect
-    timestamp_to_print = Timer.convert_to_h_m_s_format(timestamp, shorten_seconds_above_1_min=True) #todo streamline timestamp stuff # this is repeated code btw
-    to_print = StringBuilder(timestamp_to_print)
+    #write & print (using mark_action)
+    to_write_list = [effect_name]
+    
     on_or_off = lambda : ["Off","On"][int(effect_is_active)]
-    to_print.add(f"Toggled {effect_action.get_name_for_printing()}")
-    to_print.add(on_or_off())
-    #to_print.add("Effect was on for {}")
-    print_over_updating_display(to_print.get_string())
+    to_print_list = [f"Toggled {effect_action.get_name_for_printing()}",
+                    on_or_off()]
+    #to_print.append("Effect was on for {}")
+    
+    print_and_write_action(timer, to_write_list, to_print_list)
     
     
+def print_and_write_action(main_timer:Timer, write_list:list, print_list:list):
+    global output_file
+    #timestamp formatting
+    #print
+    #write
 
+    #timestamp formatting
+    timestamp_to_print = main_timer.get_formatted_current_time()
+    timestamp_to_write = main_timer.get_current_time_trunc()
+
+    #build print & write Strings
+    to_print = str(timestamp_to_print)
+    to_write = str(timestamp_to_write)
+    for i in print_list:
+        to_print += "\t" + str(i)
+    for i in write_list: 
+        to_write += "\t" + str(i)
+
+    #write
+    output_file.write(to_write + "\n")
+
+    #print
+    print_over_updating_display(to_print)
 
 
 def print_over_updating_display(string_to_print:str, min_len=70): #could use a better name maybe
@@ -435,7 +455,7 @@ def print_over_updating_display(string_to_print:str, min_len=70): #could use a b
 
     print_fill = " " * (min_len - len(to_print))
     
-    printing_line = True   #attempt at removing bug of occasional overwriting of this by updating display
+    printing_line = True   #fixes bug of occasional overwriting of this by updating display
     print("\r" + str(to_print) + print_fill)
     printing_line = False
     
