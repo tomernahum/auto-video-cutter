@@ -36,7 +36,7 @@ global main_timer
 global ended 
 global printing_line
 global segments_done
-global active_effect_names
+global active_effects_list
 
 class Timer:
     start_time = None#really time since last pause
@@ -209,20 +209,50 @@ class End(CutAction):
 
 class EffectAction:
     def __init__(self):
-        self.effect_name = "Test Toggle Effect"
-        self.name_for_printing = "ToggleEffect"
+        self.timer = Timer()
+        self.display_blurb = "[[name]]:[[time]]"
+
+    def __eq__(self, other):
+        if self.effect_name == other.effect_name: return True
+        return False
+
     def get_effect_name(self): return self.effect_name
     def get_name_for_printing(self): return self.name_for_printing
+    def get_name_for_UD(self): return self.name_for_UD
+
+    def start_effect_timer(self):
+        self.timer.start_timer()
+    def get_formatted_running_time(self):
+        return self.timer.get_formatted_current_time()
+
+    def get_updating_display_text(self):
+        output = str(self.display_blurb)
+        output = output.replace("[[name]]", str(self.get_name_for_UD()))
+        output = output.replace("[[time]]", str(self.get_formatted_running_time()))
+        #print_over_updating_display(output)
+        return output
+
+    
 
 class Flip(EffectAction):
     def __init__(self):
         self.effect_name = "Flip"
-        self.name_for_printing = "Flip"
+        self.name_for_printing = "Flip       "
+        self.name_for_UD = "Flip"
+
+        self.display_blurb = "[[name]]:[[time]]"
+        self.timer = Timer() #todo learn: how super works lol
+
 
 class BlackWhite(EffectAction):
     def __init__(self):
         self.effect_name = "BlackWhite"
         self.name_for_printing = "Black/White"
+        self.name_for_UD = "B/W"
+
+        
+        self.display_blurb = "[[name]]:[[time]]"
+        self.timer = Timer() #todo: make this need less repeating code or smthn
 
 
 
@@ -268,6 +298,10 @@ def start_record_mode(): #main
     output_file.close()
 
 def run_updating_display():
+    #todo *: replace effects timer with ones that adjust for rejection
+    #todo *: adjust tabbing stuff
+    
+    
     global ended  #these are changed (or "broadcasted") in the on_hotkey_press function
     global printing_line
     global main_timer
@@ -291,8 +325,16 @@ def run_updating_display():
         if main_timer.is_paused(): to_print += "(P)"
         else: to_print += "   " #so the tabing is the same
         
-        to_print += "\tAccepted Time: "  + uncut_time
-        
+        to_print += "\t\tAccepted Time: "  + uncut_time
+
+        to_print += "\tActive Effects: ["
+        if not active_effects_list:  #if its empty
+            to_print += "None"
+        else:
+            for i in active_effects_list:
+                to_print += i.get_updating_display_text()
+                to_print += ", " #todo need to remove last comma i am tired rn though
+        to_print += "]"
         
         #print the updating display
         if not printing_line: #if a line is not being printed rn (cause it might override)
@@ -353,6 +395,8 @@ def on_hotkey_press(hotkey):
         mark_effect_action(Flip(), main_timer)
     elif hotkey == "alt+2":
         mark_effect_action(BlackWhite(), main_timer)
+
+    #todo: make 1 place/list with hotkey:action_to_run or :effect configuration
     
 
 def pause_or_unpause():
@@ -395,7 +439,7 @@ def mark_cut_action(cut_action:CutAction, timer):
     print_and_write_action(timer, to_write_list, to_print_list)
 
    
-active_effect_names = set() #would make this objects with timers in them if I wanted to display that elsewhere
+active_effects_list = []
 def mark_effect_action(effect_action:EffectAction, timer):
     #keep track of if effect is on or off
     #write timestamp and effect_name in file
@@ -405,20 +449,28 @@ def mark_effect_action(effect_action:EffectAction, timer):
     effect_name = effect_action.get_effect_name()
 
     #keep track of whether the effect is on or off
-    global active_effect_names  
-    effect_was_active = effect_name in active_effect_names
-    if effect_was_active: active_effect_names.remove(effect_name)
-    else: active_effect_names.add(effect_name)
-    effect_is_active = not effect_was_active
+    global active_effects_list #list
+   
+    if effect_action in active_effects_list:    #these work because of __eq__ in effect object
+        active_effect = next((x for x in active_effects_list if x == effect_action)) #partially stolen from stack_overflow
+        effect_time = active_effect.get_formatted_running_time()
+        
+        active_effects_list.remove(effect_action)
+        effect_is_now_on = False
+    else:
+        effect_action.start_effect_timer()
+        active_effects_list.append(effect_action)
+        effect_is_now_on = True
 
 
     #write & print (using mark_action)
     to_write_list = [effect_name]
     
-    on_or_off = lambda : ["Off","On"][int(effect_is_active)]
+    on_or_off = lambda : ["Off","On"][int(effect_is_now_on)]
     to_print_list = [f"Toggled {effect_action.get_name_for_printing()}",
                     on_or_off()]
-    #todo: effect stutus & timer display (replace active effect names with effects objects w timers)
+    if not effect_is_now_on and False:
+        to_print_list.append(f"effect was on for {effect_time}")
     
     print_and_write_action(timer, to_write_list, to_print_list)
     
@@ -448,7 +500,7 @@ def print_and_write_action(main_timer:Timer, write_list:list, print_list:list):
     print_over_updating_display(to_print)
 
 
-def print_over_updating_display(string_to_print:str, min_len=70): #could use a better name maybe
+def print_over_updating_display(string_to_print:str, min_len=150): #could use a better name maybe
     global printing_line
     
     to_print = replace_tabs_w_spaces(str(string_to_print)) #otherwise it doesn't overide the updating timer display
