@@ -1,0 +1,126 @@
+timestamps
+
+#we need to have multiple effects be proccessed that change the length of the video
+
+[effect], incl cut, would have a method of it adjust the relative timestamp of every other timestamp 
+
+just jump to "System 1:" the rest is unorganized brainstorm
+
+def __ effect: (probably would be a subclasses)
+
+    cut effect (we could convert the retake stuff into cut effects):
+        timestamps before = no change
+        timestamps after = - length of segment
+        priority = 1 #lower number = higher priority
+        timestamps in between  = continuos split   #^if there was a clip in between the cut that needed to be affected, it would be split around those clips so we can update the timestamps
+        
+        clip itself -> process -> return nothing
+
+    speed up effect:
+        timestamps before = no change
+        timestamps after = -(original length of clip) + new(length of clip)
+        timestamps in_between = WIP
+        priority 2
+        #so we would speed up the clip 
+
+        clip itself -> process -> return sped up clip #
+    
+    insert effect:
+        timestamps before = no change
+        timestamps after += original length of clip
+        timestamps in_between = either: not applicable, delete those segments, or maybe spread them out
+        priority =  not super relavant, I think lower priority than cut, 
+    
+    cut silence:
+        could either be done last or subdivided around any timestamps including in between them
+
+
+    eg 0-10: speed.   5-7: cut
+    we go through chronologically, so we 
+    start w/ speed 0-10, we look through 0-10 for other effects and find 5-7 cut
+    so we either:
+     - recursively mark 0-5, 5-7, and 7-10 as speed. 5-7 is cut
+     - proccess new length of 0-5, shifting the 5,7,&10 timestamps
+     - proccess the new length of 5-7  -- or maybe just cut it either way shifting 7,10 timestamp
+     - proccess the new lenght of 7-10,
+     - if we didnt cut in step 3 than we cut modifying 7(becomes 5) & 10
+    - while this is happening every other timestamp in the file is also shifting....
+
+    eg 0-10 speed 5-15 flip:
+    start at 0-10, look for anything else, find 5, mark metasegment 0-5-15, find nothing else
+    , proccess that segment, once its done proccessing we add it to 
+
+
+
+
+    really it shouldnt matter what order we fake apply them maybe:
+    could cut and then speed, could speed (subdividing between each cut time stamp) then cut
+
+
+
+----
+
+OK, heres the system:
+
+overlapping effects will be broken up into discrete segments with 1 or more effects
+(so if 2 effects overlap the segments would be like a venn diagram: [1], [1&2], [2])
+
+- remaining segments will be none-effect segments  ((maybe))
+
+then each segment is proccessed:
+each segment has a function to call on it's own video clip (the actual effect)
+each segment has an old length and a new length
+
+sep:
+so we get an ordered list of marked segments
+then we can just proccess them and concatinate them
+
+
+
+
+System 1: 
+
+(we convet the timestamp file into cut effects)
+
+overlapping effects will be broken up into discrete segments with 1 or more effects
+(so if 2 effects overlap the segments would be like a venn diagram: [1], [1&2], [2])
+
+then we could either: 
+1) just proccess them, and concatinate the proccessed output clips  - I think it would be this one
+2) go through the original file and apply effects on to that if the framework has a seperate option for that
+
+to proccess them:
+    cut effect: deletes the clip, adds nothing to proccessed list and moves on, overwrites any other effects
+    speed effect: calls a speed effect function that returns the sped up video clip and adds that to proccessed list
+    multiple effect: calls each effect on the same clip and eventually ads that to the proccessed list
+
+Concerns:
+  - I am worried moviepy will not concatinate nicely, not sure. If this does happen i can use ffmpeg
+  - How do we implement transition effects? (needs data from 2 clips (seperated by a cut effect))
+    brainstorm:
+        cut w/ transition seperate effect from cut: it would steal some clip time from the accepted
+        ones clips around it when it is created, then when it's proccessed it would use those stolen edge clips
+        to create a transition effect, and essentially discard the 
+
+        example: (this example is of a cut_w_transtition that plays each video as it transitions, might be unwanted anyway)
+        (accept)(cut_w_transition)(timelapse)
+        so when it's created accepted would become shorter, so would timelapse.....
+        (acce)(pt)(cut_w_transition)(ti)(melapse)  (pt and ti would be used within the transition)
+        [None][cut_w_transition][transition_continuation, timelapase][timelapse]
+
+        ignore:
+            How it would look w/out transition:   [none][cut][none]      #none = keep
+            How it would look w/ transition:    [none][transition][cut&transition][transition][none]
+            or: [none][cut w/transition][none]   #nones are shortened & infringed by transition
+                    this would use the edges of the cutw/transition effect to form the transition, as well as discarding the middle
+                    oh yeah good
+            
+            how it would look pre-proccessing probably:    [keep][cut w/transition][keep]
+            so we would run cutw/transition.subdivide. It would return the 2nd [] thing above: infringing on keep a little
+            but first it would have to 
+
+
+  - I think If I start on this it will give me a better understanding like when everything is actually calculated
+    worst case, I need to do a lot of it again / rewrite it. I think that's part of the proccess (at least till I get
+    more experience thinking about code or smthn)
+

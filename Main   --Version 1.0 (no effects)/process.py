@@ -1,5 +1,4 @@
 import time
-from tokenize import String
 from moviepy.editor import *
 from moviepy.video import fx
 
@@ -59,12 +58,14 @@ class Segment:
         return self.get_VFC()
 
 
-
+#Segment: VFC & List of Effects
+#Effect: Name and function
+#How to find function
 
 class Effect:
     #so an effect is name & function, while a segment is vfc & list of effects
     @staticmethod
-    def get_effect_function(name):
+    def get_effects_function(name):
         functions_dict = {
             "Cut" : lambda VFC : VFC.subclip(0,0) ,
             "Accepted" : lambda VFC : VFC , #returns itself (does nothing)
@@ -83,7 +84,7 @@ class Effect:
 
     def __init__(self, name, data=[]):
         self.effect_name = name
-        self.effect_function = Effect.get_effect_function(name) #maybe needs some sort of data checking thing
+        self.effect_function = Effect.get_effects_function(name) #maybe needs some sort of data checking thing
         self.effect_data_list = data
     
     def __repr__(self) -> str:
@@ -143,14 +144,15 @@ def start_process_mode(): #main
 
     output = concatenate_videoclips(processed_VFCs_list)
     
-    output.write_videofile("test2.mp4")
+    
+    output.write_videofile("CUT_"+video_file_name)
 
     main_VFC.close()
 
 
 
 def get_file_names_from_user():  
-    return "test_vid.mkv", "realtest.txt"
+    #return "test_vid.mkv", "realtest.txt"
     vid_file_name = input("Enter the name of the video file to process: ")
     timestamps_file_name = input("Enter the name of the timestamps file with which to process: ")
     return vid_file_name, timestamps_file_name

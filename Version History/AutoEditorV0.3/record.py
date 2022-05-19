@@ -91,8 +91,8 @@ def add_hotkey_detection(hotkeys_dict, start_time, output_file, settings_dict):
             # makes it so that if you press the hotkey while code is running
             # it runs the function mark_cut w/ the label as an input
         else:
-            keyboard.add_hotkey(literal_hotkey_str, print, args=["temp - pressed ", literal_hotkey_str])
-            #this will be custom effects markers&doers hotkeys
+            #keyboard.add_hotkey(literal_hotkey_str, print, args=["temp - pressed ", literal_hotkey_str])
+            keyboard.add_hotkey(literal_hotkey_str, mark_effect, args=[hotkey_function_label, start_time, output_file, settings_dict])
 
 
 
@@ -130,8 +130,25 @@ def mark_cut(label, start_time, output_file, settings_dict):
 
     last_cut_timestamp = cut_timestamp #needs to be done after modify projection
 
- 
+#quickly put together
+toggle_effect_dict = []
+def mark_effect(effect_label, start_time, output_file, settings_dict):  
+    global toggle_effect_dict
+    to_print = ""
+    timestamp = get_time_elapsed_str(start_time)
+    
+    if effect_label in toggle_effect_dict and toggle_effect_dict[effect_label] == True:
+        toggle_effect_dict[effect_label] = False
+        to_print += "Ended "
+    else:
+        toggle_effect_dict[effect_label] = True
+        to_print += "Started "
 
+    to_print += "Effect "
+    to_print += effect_label
+
+    output_file.write("")
+    print(to_print)
 
 
 

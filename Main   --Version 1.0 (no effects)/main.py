@@ -1,6 +1,6 @@
 # 2 modes: Record & Proccess (Possibly Settings mode too)
 
-#from record import start_record_timestamps_mode
+from record import start_record_mode
 from process import start_process_mode
 
 #todo: I think I should call it from system and add a main.py (I will look into it)
@@ -14,7 +14,7 @@ while mode != "1" and mode != "2":
     
 #launch the correct mode
 if mode == "1":
-#    start_record_timestamps_mode()
+    start_record_mode()
     pass
 elif mode == "2":
     start_process_mode()

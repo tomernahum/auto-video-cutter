@@ -1,0 +1,22 @@
+Timestamps file for [autoeditor program] recorded on 2022-03-30 16:17:30.927484
+28.18	Rejected
+35.87	Rejected
+58.23	Accepted
+114.97	Accepted
+152.43	Accepted
+167.23	Accepted
+177.22	Rejected
+184.47	Retake A.
+232.68	Accepted
+235.31	Accepted
+238.00	Accepted
+241.33	Rejected
+244.24	Accepted
+250.88	Retake A.
+251.40	Retake A.
+251.93	Retake A.
+256.79	Accepted
+269.67	Rejected
+282.30	Accepted
+297.60	Ended   
+EOF segments done: 6, projected final time: 182.26000000000002 

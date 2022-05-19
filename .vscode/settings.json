@@ -2,6 +2,8 @@
     "todo-tree.tree.scanMode": "current file",
     "C_Cpp.errorSquiggles": "Enabled",
     "cSpell.words": [
-        "moviepy"
+        "funcs",
+        "moviepy",
+        "mycustomfuncfileexample"
     ]
 }

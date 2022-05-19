@@ -1,0 +1,103 @@
+Effect
+
+
+
+VFC Function   (VFC(s) -> VFC(s))
+
+
+Hotkey
+
+should effects be able to call one another?
+
+
+
+Proccess Mode:
+Input: 1) Data File of Effect/CutAction Timestamps & specifications 
+       2) output specifications (output file name/type etc)
+       3) Temporary assets (video file, files for effects)
+       4) Effects (correspondance w/ data file & function to apply the effect)
+
+Output: )Edited Video file
+
+
+Proccess Mode Input: 
+    Effects_that_may_be_used   incl. any data associated with them
+
+
+Example Effect:
+Zoom_in_and_play_sound
+
+    Effect Inputs:   - zoom amount, zoom coordinates, sound_to_play(mp3)
+
+    Effect data:
+        Pointer to mp3
+        (Pointer to?) VFC function
+    
+    So effect assets/data folder? (eg mp3, maybe default values)
+
+how will we get effect data to the effect
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Folder System
+
+
+FOLDER: Effect 1
+    Input Assets
+    Effect VFC Function
+    Effect name, hotkey, display info specs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------
+Mod:
+
+While recording create its own file
+
+
+
+
+
+
+
+
+

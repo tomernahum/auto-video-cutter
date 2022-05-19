@@ -1,0 +1,20 @@
+-----------------
+Record Mode:
+------------------
+HOTKEY CONFIG:
+Start: cntrl+shift+\
+End: cntrl+shift+\
+Accept: alt+q
+Reject: alt+w
+Retake A: alt+e
+
+EFFECTS: (add your own)
+Flip: alt+1
+Black&White: alt+2
+
+                           
+
+
+
+
+

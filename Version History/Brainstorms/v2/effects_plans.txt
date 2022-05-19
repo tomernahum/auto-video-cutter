@@ -1,0 +1,254 @@
+
+Effects will be classes that record mode & process mode read from
+Adding more effects will involve writing a new class and putting it in a folder
+
+
+
+
+How overlapping effects will be applied:
+
+Algo 1:
+    1. First Break it into segments so that every segment has a list of effects to apply
+    to the whole segment, like a venn diagram (each closed shape is a segment)
+        1a. if an effect has an unbreakable tag, 
+        make the segments it gets broken into have effect elements
+        w/ counter i/n (eg 1/3, 2/3, 3/3)
+    
+    2. iterate through each segment
+        2a. apply any continuouse/not-unbreakable effects to the segments vfc subclip
+        2b. if you reach a segment with a broken effect part n/n (eg 3/3), 
+        iterate back through completed segments until you reach part 1/n  and concatinate
+        those segments & their clips, then apply the effect. 
+        Then keep looking starting from the segment you just applied to
+            If there are multiple unbreakable effects just do whichever n/n you see first
+            and leave a new concatinated segment with both effect parts
+            eg: [1/3,1/2][2/3,2/2][3/3] ->concatinate&apply-> [1/3,2/3][3/3]
+    
+    Outdated:
+    Benefits:
+    - easy
+    Drawbacks:
+    - an effect that does not apply consistently among different points in the
+    clip it is applying to (like a transition, or an animation) 
+    would need some sort of split function or to be done on multiple segments at once
+
+Algo 2:
+    1. start to first effect timestamp = segment w/ no effects (add to list/meta segment)
+    2. first timestamp to it's partner = apply effect, effect needs
+    ...
+
+
+
+
+Effects need:
+
+Proccessing:
+    - apply_effect_to_segment_vfc  
+         Input: Clips to be proccessed, either multiple segments/clips or segments with timestamps in them (will decide)
+
+        
+         If it's only this effect to apply the program would generally merge it beforehand and input one clip
+
+         eg subscribe_animation: 
+         input: 
+            segments_list = [Segment(VFC, effects_to_apply=[sub1/2]), Segment(VFC, effects_to_apply=[sub2/2. reverse1/2])]
+         Proccess
+            #needs to be in each effect because they may cut specific parts & have to adjust effect marker timestamps accordingly
+            merge the segments
+            apply the effect (eg clip.overlay or whatever)
+            
+            if effect doesn't change len:
+                cut the resulting segments where they were
+            if it does (eg skip silence):
+                have the effect return new markers
+->              or have it go last.....
+
+
+
+
+
+
+
+
+
+Effect properties:
+    Breakability: 
+        1) applies the same even if broken up
+        2) does not apply the same if broken up, re-cuts the segments for you
+           or does not change clip length (can be cut up based on original markers) 
+        3) does not apply the same if broken up, does not re-cut the segments for you
+            - apply this last & you can't apply multiple of these if they overlap non-completly
+            - eg skip_silence (might be too lazy to code marker_movement / will use someone elses library)
+
+        In Proccessing Code: do type 1 first, 2 second, & 3 last
+    
+    Configurability:
+        1) Does 1 thing only
+        2) Takes some input (eg zoom amount, etc) when created
+
+    
+    Record Mode Dialogue: (eg input data or confirmation)
+        1) No Dialogue, 
+        2) Yes Dialogue, pauses recording (cuts that part)
+        3) Yes dialogue, doesn't pause recording (for showcasing is all i can think of)
+
+    Record Mode Toggling:
+        1) on/off toggle
+        2) retroactive
+        3) 
+    
+    Text:
+        *) file output representation
+        
+
+
+
+
+
+
+    Apply effects:   VFC[] -> VFC[]  #if there is just 1 only put in 1
+        breakability type:
+            1) input: self(data), 1 VFC   output: 1 VFC
+            2) input: self(data), VFCs_list,  output: VFCs_list  (if no change length can abstract/hide the cutting)
+            3) input: self(data), 1 VFC   output: 1 VFC
+
+
+
+
+
+class Zoom_Effect():
+    def __init__(self, [data]):
+        self.breakability = pass
+        self.needs_input = True
+        
+        if self.needs_input:
+            self.zoom_multiplier = data[0] #/etc
+
+    def apply_effect(self, [VFCs]):  #same for all effects
+        if breakability == "continuouse":
+            for i in VFCs:
+                output += self.apply_effect_singular(i)
+            return output
+        elif breakability == "unbreakable" and time_change = False:
+            for i in VFCs:
+                composite_vfc += i
+            self.apply_effect_singular(composite_vfc)
+            
+            last_timestamp = 0
+            for i in VFCs:
+                output += composite_vfc.subclip(last_timestamp, i.len)
+                last_timestamp = i.len
+            
+            return output
+        elif breakability = "unbreakable" and time_change = True:
+            self.apply_effect_multiple(VFCs)
+        elif breakability = "truly unbreakable":
+            #only do this point last. In program if 2 overlap wrong throw error
+            self.apply_effect_singular(composite_vfc)
+            return [composite_vfc]
+    
+    def apply_effect_singular(self, VFC):
+        return vfx.zoom(VFC, self.zoom_multiplier)
+    def apply_effect_multiple(self, VFC):
+        pass
+
+
+
+
+effect.apply_effect(self, [Segments])
+
+
+
+
+class Effect:
+    def __init__(self, breakability_type, needs_input):
+        ...
+    
+    def apply_effect(self, VFC[]):
+        see above
+
+    #ur effect should use one of these depending on breakability
+    def apply_effect_to_clip(self, VFC):
+        pass
+    def apply_effect_to_clips(self, VFC[]):
+        pass
+
+class SpecificEffect(Effect):
+    def __init__(self, [data]):
+        super.__init__(breakability_type="...", needs_input = True)
+        self.zoom_amount_etc = data[0]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Effect
+
+Record Mode:
+    record_mode.get_input(display_string)
+    
+    record_mode.get_data(data_name)
+    record_mode.modify_data(data_name, new_data)
+
+    record_mode.write_to_file(String[])    timestamp, effect_name, data
+    record_mode.print(String[])
+    
+    record_mode.is_effect_active(self)
+    record_mode.add_to_active_effects()
+    record_mode.remove_from_active_effects()
+
+def on_hotkey_pressed():
+    zoom_amount = record_mode.get_input("zoom amount: ")
+
+    record_mode.write_to_file([timestamp, effect.name, [ozoom_amount]])
+    
+def active_effects_text(): -> String
+    return "{self.name}, {self.timer}"
+
+
+
+---------------------------------------
+
+
+
+
+
+
+
+
+

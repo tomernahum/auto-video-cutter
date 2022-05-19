@@ -61,7 +61,7 @@ class CutAction:
         to_print.add(self.get_past_tense_label())
         
         if Settings.print_short_segments_done: to_print.add(segments_done)
-        elif Settings.print_long_segments_done: to_print.add(self.get_segments_done_blurb(segments_done))
+        elif Settings.print_long_segments_done: to_print.add(self.get_segments_done_blurb(CutAction.segments_done))
         
         
         to_write = ToPrintString("") #misnomer

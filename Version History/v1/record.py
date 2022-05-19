@@ -33,6 +33,7 @@ import keyboard
 #global vars: #may organize some into classes or something
 global output_file
 global main_timer
+global cut_timer
 global ended 
 global printing_line
 global segments_done
@@ -237,7 +238,7 @@ class EffectAction:
 class Flip(EffectAction):
     def __init__(self):
         self.effect_name = "Flip"
-        self.name_for_printing = "Flip       "
+        self.name_for_printing = "Flip"
         self.name_for_UD = "Flip"
 
         self.display_blurb = "[[name]]:[[time]]"
@@ -283,7 +284,7 @@ def start_record_mode(): #main
 
     
     #add hotkeys
-    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\", "alt+1", "alt+2"] #todo: hotkeys added & defined in different places, not convienient for adding
+    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\"] #todo: hotkeys added & defined in different places, not convienient for adding
     for hotkey in hotkey_list:
         keyboard.add_hotkey(hotkey, on_hotkey_press, args=[hotkey])
     
@@ -292,8 +293,8 @@ def start_record_mode(): #main
     run_updating_display() #will run forever until ended = True
     
     #finish up
-    mark_cut_action(End(), main_timer.get_current_time_trunc())
-    footer = f"EOF. segments done: {segments_done}, projected final time: {None}"
+    mark_cut_action(End(), main_timer)
+    footer = f"EOF. segments done: {segments_done}, projected final time: {cut_timer.get_formatted_current_time()}"
     output_file.write(footer)
     output_file.close()
 
@@ -327,14 +328,15 @@ def run_updating_display():
         
         to_print += "\t\tAccepted Time: "  + uncut_time
 
-        to_print += "\tActive Effects: ["
-        if not active_effects_list:  #if its empty
-            to_print += "None"
-        else:
-            for i in active_effects_list:
-                to_print += i.get_updating_display_text()
-                to_print += ", " #todo need to remove last comma i am tired rn though
-        to_print += "]"
+        if False:
+            to_print += "\tActive Effects: ["
+            if not active_effects_list:  #if its empty
+                to_print += "None"
+            else:
+                for i in active_effects_list:
+                    to_print += i.get_updating_display_text()
+                    to_print += ", " #todo need to remove last comma i am tired rn though
+            to_print += "]"
         
         #print the updating display
         if not printing_line: #if a line is not being printed rn (cause it might override)
@@ -500,7 +502,7 @@ def print_and_write_action(main_timer:Timer, write_list:list, print_list:list):
     print_over_updating_display(to_print)
 
 
-def print_over_updating_display(string_to_print:str, min_len=150): #could use a better name maybe
+def print_over_updating_display(string_to_print:str, min_len=100): #could use a better name maybe
     global printing_line
     
     to_print = replace_tabs_w_spaces(str(string_to_print)) #otherwise it doesn't overide the updating timer display
