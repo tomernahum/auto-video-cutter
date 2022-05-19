@@ -9,7 +9,7 @@ Timestamps are created with keyboard shortcuts while you are recording, afterwar
 - Any time you [Accept Segment] that segment makes it into the final video, 
 - Every time you [Reject Segment] that segment gets cut out and you are left to do a retake
 - You can also [Reject Last Accepted] which will delete the last already accepted segment leaving you to retake it 
-- You can also mark timestamps or segments for effects to be applied
+- You can also mark timestamps or segments for effects to be applied (*COMING SOON (I am working on this currently (I want to try make the system modular & robust))
 
 Hit reject as many times as you want till you get a good take then hit accept (it will put in the segment from the last time you hit Reject till the time you hit Accept) 
 
