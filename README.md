@@ -1,7 +1,7 @@
 # auto-video-cutter
 Edits videos based on timestamps you mark with hotkeys as you record the video. \
 Core mechanic is Accept Segment / Reject Segment (see below) \
-Does not trim silence as many other programs exist to do that, but can automatically run a silence trimming program after cuts are made.
+Does not trim silence as many other programs exist to do that, but can automatically run a silence trimming program after cuts are made. (*not yet implemented)
 
 Timestamps are created with keyboard shortcuts while you are recording, afterward the program will edit the video automatically based on the timestamps file
  
