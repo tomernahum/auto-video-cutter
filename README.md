@@ -17,5 +17,6 @@ Hit reject as many times as you want till you get a good take then hit accept (i
 
 
 Features described are not necessarily implemented yet this is a work in progress
+Also I will clean up the code more / properly learn proper coding structure / design pattern principles
 
 # How to Use
