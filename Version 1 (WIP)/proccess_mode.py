@@ -25,3 +25,30 @@ Code:
     - 
 - output the final video
 """
+
+
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    
+    timestamps_file = open("realtest.txt", "r")
+    
+    import cut_actions.get_segment_blueprints as module
+
+    x = module.get_segment_blueprints_list(timestamps_file)
+    
+    timestamps_file.close()
+    
+    for i in x:
+        print(i)
+    
+

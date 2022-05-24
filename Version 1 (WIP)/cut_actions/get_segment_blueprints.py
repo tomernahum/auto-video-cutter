@@ -1,38 +1,28 @@
-from moviepy.video import fx
 
-from segments_and_effects import SegmentBlueprint
-from segments_and_effects import Effect
+from objects.segments_and_effects import SegmentBlueprint
 
-
-
-#Function called from proccess mode // Main
-def get_segments_list_for_process_mode(timestamps_file): #wip
-    pass
+from cut_actions import cut_effect
 
 def get_cut_effect():
-    def cut_function(vfc_list): #Need to think on this
-        pass
-
-    cut_effect = Effect(cut_function, True)
-    return cut_effect
+    return cut_effect.get_cut_effect()
 
 
 #main / called on from proccess mode
-def get_segments_list(timestamps_file):
+def get_segment_blueprints_list(timestamps_file):
     timestamps_list = get_list_from_timestamps_file(timestamps_file)
     
-    segments_list = build_segments_list(timestamps_list)
+    segment_blueprints_list = build_segment_blueprints_list(timestamps_list)
     #for i in segments_list: print(i)
     #print("------------")
-    segments_list = simplify_segments_list(segments_list)
+    segment_blueprints_list = simplify_segment_blueprints_list(segment_blueprints_list)
     #for i in segments_list: print(i)
 
-    return segments_list
+    return segment_blueprints_list
     
     
     
 
-def build_segments_list(timestamps_list):
+def build_segment_blueprints_list(timestamps_list):
     segments_list = []
     last_timestamp = 0
     last_segment_cut = None
@@ -60,7 +50,7 @@ def build_segments_list(timestamps_list):
         last_timestamp = timestamp
     return segments_list
 
-def simplify_segments_list(input_segments_list):
+def simplify_segment_blueprints_list(input_segments_list):
     new_segments_list = []
     
     last_input_segment_cut_status = None
@@ -107,8 +97,11 @@ def get_list_from_timestamps_file(timestamps_file):
 
 if __name__ == "__main__":
     file = open("realtest.txt", "r")
-    get_segments_list(file)
+    x = get_segment_blueprints_list(file)
     file.close()
+
+    for i in x:
+        print(i)
 
 
 
