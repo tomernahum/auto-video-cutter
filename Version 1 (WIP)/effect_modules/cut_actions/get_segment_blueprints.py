@@ -1,7 +1,7 @@
 
 from objects.segments_and_effects import SegmentBlueprint
 
-from cut_actions import cut_effect
+from ..cut_actions import cut_effect
 
 def get_cut_effect():
     return cut_effect.get_cut_effect()
