@@ -46,15 +46,23 @@ def main():
     plugins = get_list_of_plugin_apis(PLUGINS_DIRECTORY_NAME)
     
     #combine plugin provided segment_blueprints_list into one segments_list
-    list_of_segment_bluprints_lists = []
+    list_of_segment_blueprints_lists = []
     for plugin in plugins:
         x = get_segment_blueprints_list_from_plugin(plugin)
+        list_of_segment_blueprints_lists.append(x)
+    
+    combine_segment_blueprints(list_of_segment_blueprints_lists)
 
-        for i in x:
-            print(i)
+def combine_segment_blueprints(list_of_segment_blueprints_lists):
+    #x = 
+    for i in list_of_segment_blueprints_lists:
+        print(i)
+    return
 
-def get_segment_blueprints_list_from_plugin(plugin):
-    file = get_file(plugin)
+
+def get_segment_blueprints_list_from_plugin(plugin, file=None):
+    if file == None: file = get_file(plugin)
+    else: file = open(file, 'r')
     result = plugin.get_segment_blueprints_list(file)
     file.close()
     return result
@@ -93,7 +101,21 @@ def get_list_of_plugin_names(plugins_folder):  #Q/A what if this was indented in
 
 
 
+
+
+def testing():
+    plugins = get_list_of_plugin_apis("effect_modules")
+    plugin = plugins[0]
+    realtest = get_segment_blueprints_list_from_plugin(plugin, file="realtest.txt")
+    print_list(realtest)
+
+
+def print_list(list):
+    for i in list:
+        print(i)
+
 if __name__ == "__main__":
-    main()
+    testing()
+
     
 

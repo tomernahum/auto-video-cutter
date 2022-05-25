@@ -7,7 +7,7 @@ class SegmentBlueprint:
         return f"({self.start_time}, {self.end_time}):{self.effects_list}"
 
 
-    def __init__(self, start_time, end_time, effects_list) -> None:
+    def __init__(self, start_time, end_time, effects_list=[]) -> None:
         self.start_time = start_time
         self.end_time = end_time
         self.effects_list = effects_list
@@ -28,8 +28,17 @@ class SegmentBlueprint:
 class Effect:
     #concrete function
     #breakability
+    
+    def __repr__(self) -> str:
+        if self.is_breakable:
+            b = "breakable"
+        else: b = "unbreakable"
+        return f"{self.name} Effect: ({b}, {self.function})"
+    
+    def __repr__(self) -> str: return f"{self.name}" #comment-out-able
 
-    def __init__(self, function, is_breakable) -> None:
+    def __init__(self, name, function, is_breakable) -> None:
+        self.name = name
         self.function = function
         self.is_breakable = is_breakable
         self.is_dumb_unbreakable = None

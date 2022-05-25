@@ -1,0 +1,15 @@
+Timestamps file for [autoeditor program] recorded on 2022-05-25 15:42:57.894236
+1.9	Flip
+3.01	Flip
+7.60	BlackWhite
+8.52	BlackWhite
+8.78	BlackWhite
+9.90	Flip
+10.95	BlackWhite
+12.93	BlackWhite
+16.47	BlackWhite
+26.97	Flip
+27.60	BlackWhite
+30.00	BlackWhite
+32.86	End
+footer

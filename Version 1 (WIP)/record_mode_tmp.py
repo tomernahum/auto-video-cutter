@@ -23,7 +23,6 @@ as I am essentially running 2 scripts at once (check for hotkeys & update live t
 """
 #bug: it'd be nice if it didn't flash when printing
 
-#yeah this isn't structured the best now that its the future, esp the hotkey config being in like 3 places (though probably could be fixed with a class), still pretty cool to make / proud
 
 
 import datetime
@@ -263,12 +262,15 @@ def start_record_mode(): #main
     global cut_timer
     global segments_done
     global output_file
+    global output_file_2
     
     output_file_name = get_output_file_name()
     output_file = open(output_file_name, "w")
+    output_file_2 = open("effects_test.txt", 'w')
     
     file_header = "Timestamps file for [autoeditor program] recorded on " + str(datetime.datetime.now())
     output_file.write(file_header + "\n")
+    output_file_2.write(file_header + "\n")
 
     main_timer = Timer()
     cut_timer = CutTimer()  #time elapsed that made it into final vid / isn't cut
@@ -285,7 +287,7 @@ def start_record_mode(): #main
 
     
     #add hotkeys
-    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\"] #todo: hotkeys added & defined in different places, not convienient for adding
+    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\", "alt+1", "alt+2"] #todo: hotkeys added & defined in different places, not convienient for adding
     for hotkey in hotkey_list:
         keyboard.add_hotkey(hotkey, on_hotkey_press, args=[hotkey])
     
@@ -298,6 +300,8 @@ def start_record_mode(): #main
     footer = f"EOF. segments done: {segments_done}, projected final time: {cut_timer.get_formatted_current_time()}"
     output_file.write(footer)
     output_file.close()
+    output_file_2.write("footer")
+    output_file_2.close()
 
 def run_updating_display():
     #todo *: replace effects timer with ones that adjust for rejection
@@ -475,10 +479,10 @@ def mark_effect_action(effect_action:EffectAction, timer):
     if not effect_is_now_on and False:
         to_print_list.append(f"effect was on for {effect_time}")
     
-    print_and_write_action(timer, to_write_list, to_print_list)
+    print_and_write_action(timer, to_write_list, to_print_list, action="effect")
     
     
-def print_and_write_action(main_timer:Timer, write_list:list, print_list:list):
+def print_and_write_action(main_timer:Timer, write_list:list, print_list:list, action="cut"):
     global output_file
     #timestamp formatting
     #print
@@ -497,7 +501,11 @@ def print_and_write_action(main_timer:Timer, write_list:list, print_list:list):
         to_write += "\t" + str(i)
 
     #write
-    output_file.write(to_write + "\n")
+    if action == "cut":
+        output_file.write(to_write + "\n")
+    else:
+        global output_file_2
+        output_file_2.write(to_write + "\n")
 
     #print
     print_over_updating_display(to_print)
@@ -558,8 +566,8 @@ class StringBuilder:
 
 
 def get_output_file_name():
-    #return "1.txt" #for testing
-    return input("enter the name of the file to write to (no extention): ") + ".txt"
+    return "test.txt" #for testing
+    #return input("enter the name of the file to write to (no extention): ") + ".txt"
 
 
 if __name__ == "__main__":

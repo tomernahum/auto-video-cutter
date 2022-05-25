@@ -1,0 +1,25 @@
+Timestamps file for [autoeditor program] recorded on 2022-05-25 15:42:57.894236
+1.17	Rejected
+3.52	Rejected
+3.81	Accepted
+4.12	Rejected
+4.4	Retaking A.
+6.15	Accepted
+6.65	Accepted
+6.82	Accepted
+7.94	Accepted
+9.18	Accepted
+10.59	Accepted
+11.75	Accepted
+12.4	Rejected
+13.43	Rejected
+15.03	Rejected
+15.33	Accepted
+17.17	Accepted
+19.25	Retaking A.
+21.55	Rejected
+25.77	Accepted
+29.56	Accepted
+31.57	Accepted
+32.86	Ended   
+EOF. segments done: 11, projected final time: 17.5s
