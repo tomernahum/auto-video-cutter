@@ -27,8 +27,22 @@ Code:
 """
 
 
+"""
+Code:
+ - ...
+ - get lists of segment_blueprints from each mod (pass in appropriate data)
+ - combine all segment blueprints and convert to segments w clips on main video
+ - apply all the effects
+ - output
+"""
 
 
+def main():
+
+
+
+
+    pass
 
 
 
@@ -42,7 +56,7 @@ if __name__ == "__main__":
     
     timestamps_file = open("realtest.txt", "r")
     
-    import cut_actions.get_segment_blueprints as module
+    import effect_modules.cut_actions.get_segment_blueprints as module
 
     x = module.get_segment_blueprints_list(timestamps_file)
     

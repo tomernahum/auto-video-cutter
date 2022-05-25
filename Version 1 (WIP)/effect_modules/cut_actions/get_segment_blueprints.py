@@ -1,10 +1,11 @@
 
 from objects.segments_and_effects import SegmentBlueprint
 
-from ..cut_actions import cut_effect
+from . import cut_effect   #Q/N: I made it relative import so that if I nest this entire subpackage in another subpackage or put it in a different system(system is like a ui essentially i think) it still works (also i want people to be able to drag in packages someone else made to expand functionality). I heard this is bad practice though, what am i to do? some sort of api thing?
 
 def get_cut_effect():
     return cut_effect.get_cut_effect()
+    #return get_cut_effect()
 
 
 #main / called on from proccess mode
