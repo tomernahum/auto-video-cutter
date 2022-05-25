@@ -29,7 +29,7 @@ Code:
 
 """
 Code:
- - ...
+ - get data from mod
  - get lists of segment_blueprints from each mod (pass in appropriate data)
  - combine all segment blueprints and convert to segments w clips on main video
  - apply all the effects
@@ -41,20 +41,27 @@ import importlib
 
 
 def main():
-    PLUGINS_DIRECTORY_NAME = "effect_modules"
+    PLUGINS_DIRECTORY_NAME = "effect_modules" #I will change this to effect_plugins later
     
     plugins = get_list_of_plugin_apis(PLUGINS_DIRECTORY_NAME)
     
-    
+    #combine plugin provided segment_blueprints_list into one segments_list
+    list_of_segment_bluprints_lists = []
     for plugin in plugins:
-        file = open("realtest.txt", 'r')
-        x = plugin.get_segment_blueprints_list(file)
-        file.close()
+        x = get_segment_blueprints_list_from_plugin(plugin)
 
         for i in x:
             print(i)
 
-    pass
+def get_segment_blueprints_list_from_plugin(plugin):
+    file = get_file(plugin)
+    result = plugin.get_segment_blueprints_list(file)
+    file.close()
+    return result
+
+def get_file(plugin):
+    #will eventually have to do with interacting w/ plugin
+    return open("realtest.txt", 'r')
 
 def get_list_of_plugin_apis(plugins_folder_name):
     list_of_plugin_names = get_list_of_plugin_names(plugins_folder_name)
@@ -67,7 +74,7 @@ def get_list_of_plugin_apis(plugins_folder_name):
     return list_of_plugin_modules
 
 
-def get_list_of_plugin_names(plugins_folder):
+def get_list_of_plugin_names(plugins_folder):  #Q/A what if this was indented in the above function cause thats the only place its used & it clutters the outline (this applies to all functions that are just seperating out code from other functions)
     #code partially stolen from stackoverflow
     import os
     list_dir = os.listdir(plugins_folder)
@@ -87,21 +94,6 @@ def get_list_of_plugin_names(plugins_folder):
 
 
 if __name__ == "__main__":
-    
     main()
-    
-    quit()
-
-
-    timestamps_file = open("realtest.txt", "r")
-    
-    import effect_modules.cut_actions.get_segment_blueprints as module
-
-    x = module.get_segment_blueprints_list(timestamps_file)
-    
-    timestamps_file.close()
-    
-    for i in x:
-        print(i)
     
 
