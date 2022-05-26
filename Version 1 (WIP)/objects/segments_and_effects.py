@@ -8,9 +8,10 @@ class SegmentBlueprint:
 
 
     def __init__(self, start_time, end_time, effects_list=[]) -> None:
-        self.start_time = start_time
-        self.end_time = end_time
+        self.start_time = float(start_time)
+        self.end_time = float(end_time)
         self.effects_list = effects_list
+
     
     def add_effect(self, effect):
         self.effects_list.append(effect)
@@ -48,6 +49,10 @@ class Effect:
         #   Function takes in a single Segment & returns a single Segment
         #if bad:
         #   Function takes in a list of segments & returns a single segment
+    
+    def __eq__(self, other) -> bool:
+        return (self.function == other.function)
+            
     
     def is_breakable(self): return self.is_breakable
     def get_function(self): return self.function

@@ -9,6 +9,7 @@ def get_effect(effect_name):
         return get_flip_effect()
     elif effect_name in {"BlackWhite", "black-white", "blackwhite"}:
         return get_blackwhite_effect()
+    return f"effect name error; name: {effect_name}"
 
 def get_flip_effect():
     effect = Effect("flip", flip_function, is_breakable=True)

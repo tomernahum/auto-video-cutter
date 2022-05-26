@@ -12,7 +12,8 @@ def get_segment_blueprints_list(timestamps_file):
 
 
 def get_file_name():
-    return "timestamps.txt"
+    return "test.txt"
+    #will be made dynamic / right later
 
 
 def test():
