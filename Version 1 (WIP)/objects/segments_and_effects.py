@@ -31,31 +31,36 @@ class Effect:
     #breakability
     
     def __repr__(self) -> str:
-        if self.is_breakable:
-            b = "breakable"
-        else: b = "unbreakable"
-        return f"{self.name} Effect: ({b}, {self.function})"
+        if self.is_homogenius:
+            part_num = "N/A"
+        else: part_num = self.get_part_num()
+        return f"{self.name} Effect: ({part_num}, {self.function})"
     
-    def __repr__(self) -> str: return f"{self.name}" #comment-out-able
+    def __repr__(self) -> str: return f"({self.name}, {self.get_part_num()})" #comment-out-able
 
-    def __init__(self, name, function, is_breakable) -> None:
+    def __init__(self, name, function, is_homogenius, broken_part_num=None) -> None:
         self.name = name
         self.function = function
-        self.is_breakable = is_breakable
-        self.is_dumb_unbreakable = None
-        #if unbreakable:
-        #   Function takes in a list of Segments & returns a list of Segments
-        #if breakable:
-        #   Function takes in a single Segment & returns a single Segment
-        #if bad:
-        #   Function takes in a list of segments & returns a single segment
+        self.is_homogenius = is_homogenius
+        self.broken_part_num = broken_part_num #if heterogenius break into parts
+        #self.is_dumb_unbreakable = None
+        #homogenius: can be broken up into multiple clips and effect will come out the same
+        #heterogenius: effect must be applied to entire area at once; breaking it up would make it wrong
+        #super-hetrogenius: can't overlap at all (try to avoid this) (not yet implemented)
     
     def __eq__(self, other) -> bool:
         return (self.function == other.function)
             
     
-    def is_breakable(self): return self.is_breakable
+    def get_is_homogenius(self): return self.is_homogenius
     def get_function(self): return self.function
+    def get_part_num(self): 
+        if self.is_homogenius:
+            return ""
+        return self.broken_part_num
+
+    def set_part_num(self, new_num): self.broken_part_num = new_num
+    def increment_part_num(self): self.broken_part_num += 1
 
 
 

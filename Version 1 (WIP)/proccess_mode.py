@@ -47,8 +47,8 @@ def main():
     plugins = get_list_of_plugin_apis(PLUGINS_DIRECTORY_NAME)
 
     #get files from user
-    main_video_file_name = input("Enter the video file name")
-    main_vfc = moviepy.VideoFileClip(main_video_file_name)
+    #main_video_file_name = input("Enter the video file name: ")
+    #main_vfc = moviepy.VideoFileClip(main_video_file_name)
 
     #combine plugin provided segment_blueprints_list into one segments_list
     segment_blueprints_extended_list = []
@@ -59,9 +59,9 @@ def main():
     segment_blueprints_list = combine_segment_blueprints(segment_blueprints_extended_list)
 
     #convert segment blueprints to segments with VFC clips & effects_to_be_applied
-    segments_list = []
-    for segment_blueprint in segment_blueprints_list:
-        segments_list.append(Segment(segment_blueprint, main_vfc))
+    #segments_list = []
+    #for segment_blueprint in segment_blueprints_list:
+    #    segments_list.append(Segment(segment_blueprint, main_vfc))
     
     #apply all effects to each segment
     #concatenate & output resulting video
@@ -72,56 +72,45 @@ def combine_segment_blueprints(segment_blueprints):
     #TODO: NEEDS BREAKABLITY
     #optimize: could be more efficient (for all I know) 
     
-    #convert segment_blueprints to starts & ends
-    class start_or_end_effect:
-        def __init__(self, time, effects_list):
-            self.time = time
-            self.effects_list = effects_list
-        def __eq__(self, other):
-            return self.effects_list == other.effects_list #effects = based on function
-        def __repr__(self):
-            return f"{self.time}, {type(self).__name__}: {self.effects_list}"
-        def get_time(self): return self.time
-        def get_effects_list(self): return self.effects_list
-    class start(start_or_end_effect): pass
-    class end(start_or_end_effect): pass
-    class final(start_or_end_effect): pass
-
-    starts_and_ends_list = convert_sbp_to_start_end_list(segment_blueprints, start, end, final)
+    #convert segment_blueprints to starts & ends objects (type, timestamp, effect)
+    start_effect_obj, end_effect_obj, final_effect_obj = get_start_end_effect_objs()
+    starts_and_ends_list = convert_sbp_to_start_end_list(segment_blueprints, start_effect_obj, end_effect_obj, final_effect_obj)
     
     #create new segment_blueprints based on that
-    output_segment_blueprints = []
-    open_starts = []  #not a set because there could be 2 of the same effect (then it would apply double)
-    last_timestamp = 0
-    for start_or_end in starts_and_ends_list:
-        timestamp = start_or_end.get_time()
-        effects_list = start_or_end.get_effects_list()
-        is_start = isinstance(start_or_end, start)
-        
-        
-        #create the last segment
-        active_effects_list = []
-        for open_start in open_starts:
-            active_effects_list.extend(open_start.get_effects_list())
-        sbp = SegmentBlueprint(last_timestamp, timestamp, active_effects_list)
-        output_segment_blueprints.append(sbp)
-        
-        #update open effects list
-        if isinstance(start_or_end, final):
-            break
-        if is_start:
-            open_starts.append(start_or_end)
-        else: #if is end
-            #remove corresponding start from active_effects
-            open_starts.remove(start_or_end) #start_or_ends equal based on effects list regardless of start/end status
-
-        last_timestamp = timestamp
+    new_segment_blueprints = convert_start_end_objs_to_segment_blueprints(starts_and_ends_list)
     
-    #_print_list(output_segment_blueprints)
+    return new_segment_blueprints
 
-    return output_segment_blueprints
+def get_start_end_effect_objs():
+    class start_or_end_effect:
+        def __init__(self, time, effect):
+            self.time = time
+            self.effect = effect
+        def __eq__(self, other):
+            return self.effect == other.effect #effects = based on function
+        def __repr__(self):
+            return f"{self.get_type_str()}, {self.time} : {self.effect}"
+        def get_time(self): return self.time
+        def get_effect(self): return self.effect
+        def get_type_str(self):
+            if isinstance(self, start_effect_obj): return "start"
+            elif isinstance(self, end_effect_obj): return "end"
+            else: return "final"
+        def is_homogenius(self):
+            return self.effect.get_is_homogenius()  
+        def is_heterogenius(self):
+            return not self.is_homogenius()
+        def set_part_num(self, n):
+            self.effect.set_part_num(n)
+        def increment_part_num(self):
+            self.effect.increment_part_num()
+    class start_effect_obj(start_or_end_effect): pass
+    class end_effect_obj(start_or_end_effect): pass
+    class final_effect_obj(start_or_end_effect): pass
+    return start_effect_obj, end_effect_obj, final_effect_obj
 
-def convert_sbp_to_start_end_list(segment_blueprints, start, end, final):
+
+def convert_sbp_to_start_end_list(segment_blueprints, start_effect_obj, end_effect_obj, final):
     #_print_list(segment_blueprints)
     starts_and_ends_list = []
     for segment_blueprint in segment_blueprints:
@@ -131,18 +120,61 @@ def convert_sbp_to_start_end_list(segment_blueprints, start, end, final):
         
         if effects_list == []:
             continue
-        starts_and_ends_list.append(start(start_time, effects_list))
-        starts_and_ends_list.append(end(end_time, effects_list))
+        for effect in effects_list:
+            starts_and_ends_list.append(start_effect_obj(start_time, effect))
+            starts_and_ends_list.append(end_effect_obj(end_time, effect))
     
     starts_and_ends_list.sort(key=lambda x: x.get_time())
-    starts_and_ends_list.append(final(segment_blueprints[-1].get_end_time(), []))
+    starts_and_ends_list.append(final(segment_blueprints[-1].get_end_time(), "Final"))
     return starts_and_ends_list
+
+def convert_start_end_objs_to_segment_blueprints(starts_and_ends_list): #starts_and_ends_list must be sorted
+    #still bugged, kind of tired rn, (hetero effects counts dont reset/work)
+    _print_list(starts_and_ends_list)
+    output = []
+
+    active_toggles = []
+    last_timestamp = 0
+    for toggle in starts_and_ends_list:
+        timestamp = toggle.get_time()
+        effect = toggle.get_effect()
+        toggle_type = toggle.get_type_str()
+        print(f"{timestamp}\t {type}\t {effect}")
+        
+
+        #create the segment_bp ending at this toggle
+        output_segment_effects = [x.get_effect() for x in active_toggles] #first time using [] not yet tested
+        output_segment = SegmentBlueprint(last_timestamp, timestamp, output_segment_effects)
+        output.append(output_segment)
+
+        #update active toggles for next segment_bp based on current toggle
+        if toggle_type == "final":
+            break
+        
+        elif toggle_type == "start":
+            if toggle.is_heterogenius():
+                toggle.set_part_num(0)  #0 because it will be increased next    if bug could be related to this?
+            active_toggles.append(toggle)
+        elif toggle_type == "end":
+            active_toggles.remove(toggle)  #objects are = if their effects are (which are = if their function is)
+
+        #increase any hetero active toggle' part numbers by 1
+        for toggle in active_toggles:
+            if not toggle.is_homogenius():
+                toggle.increment_part_num()
+
+        last_timestamp = timestamp
+
+    _print_list(output)
+    
+    
+
+
+
 
 
 
 def get_segment_blueprints_list_from_plugin(plugin, file=None):
-    if file == None: file = get_open_file(plugin)
-    else: file = open(file, 'r')
     result = plugin.get_segment_blueprints_list(file)
     file.close()
     return result

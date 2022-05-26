@@ -12,11 +12,11 @@ def get_effect(effect_name):
     return f"effect name error; name: {effect_name}"
 
 def get_flip_effect():
-    effect = Effect("flip", flip_function, is_breakable=True)
+    effect = Effect("flip", flip_function, is_homogenius=False)
     return effect
 
 def get_blackwhite_effect():
-    effect = Effect("black-white", bw_function, is_breakable=True)
+    effect = Effect("black-white", bw_function, is_homogenius=True)
     return effect
 
 def flip_function(segments_list):
