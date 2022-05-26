@@ -36,7 +36,7 @@ Code:
  - output
 """
 
-
+import moviepy.editor as moviepy
 import importlib
 from objects.segments_and_effects import *
 
@@ -46,21 +46,30 @@ def main():
     
     plugins = get_list_of_plugin_apis(PLUGINS_DIRECTORY_NAME)
 
+    #get files from user
+    main_video_file_name = input("Enter the video file name")
+    main_vfc = moviepy.VideoFileClip(main_video_file_name)
+
     #combine plugin provided segment_blueprints_list into one segments_list
     segment_blueprints_extended_list = []
     for plugin in plugins:
-        x = get_segment_blueprints_list_from_plugin(plugin)
+        x = get_segment_blueprints_list_from_plugin(plugin, file=get_open_file(plugin))
         segment_blueprints_extended_list.extend(x)
     
     segment_blueprints_list = combine_segment_blueprints(segment_blueprints_extended_list)
 
     #convert segment blueprints to segments with VFC clips & effects_to_be_applied
+    segments_list = []
+    for segment_blueprint in segment_blueprints_list:
+        segments_list.append(Segment(segment_blueprint, main_vfc))
+    
     #apply all effects to each segment
     #concatenate & output resulting video
 
 
 
 def combine_segment_blueprints(segment_blueprints):
+    #TODO: NEEDS BREAKABLITY
     #optimize: could be more efficient (for all I know) 
     
     #convert segment_blueprints to starts & ends
@@ -132,13 +141,13 @@ def convert_sbp_to_start_end_list(segment_blueprints, start, end, final):
 
 
 def get_segment_blueprints_list_from_plugin(plugin, file=None):
-    if file == None: file = get_file(plugin)
+    if file == None: file = get_open_file(plugin)
     else: file = open(file, 'r')
     result = plugin.get_segment_blueprints_list(file)
     file.close()
     return result
 
-def get_file(plugin):
+def get_open_file(plugin):
     #will eventually have to do with interacting w/ plugin
     file = open(plugin.get_file_name(), 'r')
     return file

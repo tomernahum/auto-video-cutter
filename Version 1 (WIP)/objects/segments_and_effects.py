@@ -1,4 +1,4 @@
-
+import moviepy.editor as moviepy
 
 class SegmentBlueprint:
     #Clip coordinates (start&stop time)
@@ -64,4 +64,15 @@ class Effect:
 class Segment:
     # Clip/ VFC
     # Effects_to_be_applied
+    def __init__(self, segment_bp:SegmentBlueprint, parent_vfc:moviepy.VideoFileClip):
+        self.effects_to_be_applied = segment_bp.get_effects_list()
+        self.blueprint = segment_bp
+        #below could be seperated to act only once its needed if ever needed
+        self.vfc = parent_vfc.subclip(segment_bp.get_start(), segment_bp.get_end())
+
+    
+    def get_vfc(self):
+        return self.vfc
+    
+
     pass
