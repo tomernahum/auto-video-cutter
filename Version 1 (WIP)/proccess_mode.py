@@ -38,6 +38,7 @@ Code:
 
 
 import importlib
+from objects.segments_and_effects import *
 
 
 def main():
@@ -46,12 +47,18 @@ def main():
     plugins = get_list_of_plugin_apis(PLUGINS_DIRECTORY_NAME)
 
     #combine plugin provided segment_blueprints_list into one segments_list
-    segment_blueprints_list = []
+    segment_blueprints_extended_list = []
     for plugin in plugins:
         x = get_segment_blueprints_list_from_plugin(plugin)
-        segment_blueprints_list.extend(x)
+        segment_blueprints_extended_list.extend(x)
     
-    combine_segment_blueprints(segment_blueprints_list)
+    segment_blueprints_list = combine_segment_blueprints(segment_blueprints_extended_list)
+
+    #convert segment blueprints to segments with VFC clips & effects_to_be_applied
+    #apply all effects to each segment
+    #concatenate & output resulting video
+
+
 
 def combine_segment_blueprints(segment_blueprints):
     #optimize: could be more efficient (for all I know) 
@@ -61,65 +68,67 @@ def combine_segment_blueprints(segment_blueprints):
         def __init__(self, time, effects_list):
             self.time = time
             self.effects_list = effects_list
+        def __eq__(self, other):
+            return self.effects_list == other.effects_list #effects = based on function
         def __repr__(self):
             return f"{self.time}, {type(self).__name__}: {self.effects_list}"
         def get_time(self): return self.time
+        def get_effects_list(self): return self.effects_list
     class start(start_or_end_effect): pass
     class end(start_or_end_effect): pass
+    class final(start_or_end_effect): pass
 
+    starts_and_ends_list = convert_sbp_to_start_end_list(segment_blueprints, start, end, final)
+    
+    #create new segment_blueprints based on that
+    output_segment_blueprints = []
+    open_starts = []  #not a set because there could be 2 of the same effect (then it would apply double)
+    last_timestamp = 0
+    for start_or_end in starts_and_ends_list:
+        timestamp = start_or_end.get_time()
+        effects_list = start_or_end.get_effects_list()
+        is_start = isinstance(start_or_end, start)
+        
+        
+        #create the last segment
+        active_effects_list = []
+        for open_start in open_starts:
+            active_effects_list.extend(open_start.get_effects_list())
+        sbp = SegmentBlueprint(last_timestamp, timestamp, active_effects_list)
+        output_segment_blueprints.append(sbp)
+        
+        #update open effects list
+        if isinstance(start_or_end, final):
+            break
+        if is_start:
+            open_starts.append(start_or_end)
+        else: #if is end
+            #remove corresponding start from active_effects
+            open_starts.remove(start_or_end) #start_or_ends equal based on effects list regardless of start/end status
+
+        last_timestamp = timestamp
+    
+    #_print_list(output_segment_blueprints)
+
+    return output_segment_blueprints
+
+def convert_sbp_to_start_end_list(segment_blueprints, start, end, final):
+    #_print_list(segment_blueprints)
     starts_and_ends_list = []
     for segment_blueprint in segment_blueprints:
         effects_list = segment_blueprint.get_effects_list()
         start_time = segment_blueprint.get_start_time()
         end_time = segment_blueprint.get_end_time()
         
+        if effects_list == []:
+            continue
         starts_and_ends_list.append(start(start_time, effects_list))
         starts_and_ends_list.append(end(end_time, effects_list))
     
     starts_and_ends_list.sort(key=lambda x: x.get_time())
-    
-    _print_list(starts_and_ends_list)
+    starts_and_ends_list.append(final(segment_blueprints[-1].get_end_time(), []))
+    return starts_and_ends_list
 
-
-    #create new segment_blueprints based on that
-    for start_or_end in starts_and_ends_list:
-        timestamp = start_or_end.get_time()
-        effects_list = start_or_end.get_effects_list
-
-
-
-
-
-    #sorted_list = sorted(list_of_segment_blueprint_lists, key=lambda x: x.get_start_time() )
-
-    return
-
-
-def scan_toggle_file(toggle_file, get_effect_function):  #can be put into general library
-    #needs an end timestamp or else it will not work
-    file = get_list_from_timestamps_file(toggle_file)
-    file = truncate_file_list_to_two(file)
-
-    output = []
-    active_effects = set()
-    last_timestamp = 0
-    for timestamp, effect_name, in file:
-        #build the segment ending at this timestamp
-        segment_blueprint = SegmentBlueprint(last_timestamp, timestamp, [])
-        for i in active_effects:
-            segment_blueprint.add_effect(get_effect_function(i))
-        output.append(segment_blueprint)
-
-        #update the effects for the next segment
-        if effect_name in active_effects:
-            active_effects.remove(effect_name)
-        else:
-            active_effects.add(effect_name)
-        
-        last_timestamp = timestamp
-        
-
-    return output
 
 
 def get_segment_blueprints_list_from_plugin(plugin, file=None):
@@ -170,7 +179,7 @@ def testing():
     plugins = get_list_of_plugin_apis("effect_modules")
     plugin = plugins[0]
     realtest = get_segment_blueprints_list_from_plugin(plugin, file="realtest.txt")
-    _print_list(realtest)
+    #_print_list(realtest)
 
 
 def _print_list(list):
