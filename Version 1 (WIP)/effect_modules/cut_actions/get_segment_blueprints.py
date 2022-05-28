@@ -80,7 +80,7 @@ def simplify_segment_blueprints_list(input_segments_list):
     
 
 def segment_is_cut(segment:SegmentBlueprint):
-    if segment.has_effect():
+    if segment.has_effects():
         return True
     return False
 

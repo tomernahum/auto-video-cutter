@@ -20,7 +20,7 @@ class SegmentBlueprint:
     def get_end_time(self): return self.end_time
     def get_effects_list(self): return self.effects_list
 
-    def has_effect(self):
+    def has_effects(self):
         if self.effects_list == []:
             return False
         return True
@@ -28,41 +28,58 @@ class SegmentBlueprint:
 
 class Effect:
     #concrete function
-    #breakability
+    #breakability/homogeneity
     
     def __repr__(self) -> str:
-        if self.is_homogenius:
-            part_num = "N/A"
-        else: part_num = self.get_part_num()
-        return f"{self.name} Effect: ({part_num}, {self.function})"
+        return f"({self.name} effect: ({self.function}))"
     
-    def __repr__(self) -> str: return f"({self.name}, {self.get_part_num()})" #comment-out-able
+    def __repr__(self) -> str: return f"({self.name})" #comment-out-able  #, {self.get_part_num()}
 
-    def __init__(self, name, function, is_homogenius, broken_part_num=None) -> None:
+    def __init__(self, name, function, is_homogenius) -> None:
         self.name = name
         self.function = function
         self.is_homogenius = is_homogenius
-        self.broken_part_num = broken_part_num #if heterogenius break into parts
         #self.is_dumb_unbreakable = None
         #homogenius: can be broken up into multiple clips and effect will come out the same
         #heterogenius: effect must be applied to entire area at once; breaking it up would make it wrong
         #super-hetrogenius: can't overlap at all (try to avoid this) (not yet implemented)
     
     def __eq__(self, other) -> bool:
-        return (self.function == other.function)
-            
+        try: return (self.function == other.function)
+        except: return False
     
     def get_is_homogenius(self): return self.is_homogenius
     def get_function(self): return self.function
+
+    def get_new_obj(self):
+        return Effect(self.name, self.function, self.is_homogenius)
+    
+
+
+class EffectPart(Effect): #Q/A is inherentance better (or any different)?
+    #effect
+    #part_num
+    def __init__(self, effect:Effect, part_num) -> None: 
+        super().__init__(effect.name, effect.function, effect.is_homogenius) #Q/A I want it to do this automatically in case I ever add attributes but I dont know how
+        self.part_num = part_num
+
+    def __repr__(self) -> str:
+        return  f"({self.name}, {self.part_num})"
+
+    def get_new_obj(self):
+        return EffectPart(Effect(self.name, self.function, self.is_homogenius), self.part_num)
+
     def get_part_num(self): 
-        if self.is_homogenius:
-            return ""
-        return self.broken_part_num
+        return self.part_num
 
-    def set_part_num(self, new_num): self.broken_part_num = new_num
-    def increment_part_num(self): self.broken_part_num += 1
-
-
+    def set_part_num(self, new_num): 
+        self.part_num = new_num
+    
+    def increment_part_num(self): 
+        self.part_num += 1
+    
+    
+    
 
 
 
@@ -78,6 +95,9 @@ class Segment:
     
     def get_vfc(self):
         return self.vfc
+    def get_effects_to_be_applied(self):
+        return self.effects_to_be_applied
+    
     
 
     pass
