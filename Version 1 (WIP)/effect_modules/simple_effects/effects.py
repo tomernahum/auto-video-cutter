@@ -21,16 +21,36 @@ def get_blackwhite_effect():
 
 def flip_function(segments_list):
     output = []
-    for i in segments_list:
-        new_clip = i.fx(vfx.mirror_y)
-        output.append(new_clip)
+    for segment in segments_list:
+        vfc = segment.get_vfc()
+        new_clip = vfc.fx(vfx.mirror_y)
+        segment.set_vfc(new_clip)
+        output.append(segment)
+    
     return output
 
 def bw_function(segments_list):
     output = []
-    for i in segments_list:
-        new_clip = i.fx(vfx.black_white)
-        output.append(new_clip)
+    for segment in segments_list:
+        vfc = segment.get_vfc()
+        new_clip = vfc.fx(vfx.blackwhite)
+        segment.set_vfc(new_clip)
+        output.append(segment)
+    
     return output
+
+#WIP UNTESTED
+def get_function_from_moviepy_function(input_function):
+    #example function: __.fx(vfx.black_white)
+    def effect_function(segments_list):
+        output = []
+        for segment in segments_list:
+            vfc = segment.get_vfc()
+            new_clip = vfc.input_function
+            segment.set_vfc(new_clip)
+            output.append(segment)
+        
+        return output
+
 
 #could this be made into functions that take & return functions? (yes obviously)

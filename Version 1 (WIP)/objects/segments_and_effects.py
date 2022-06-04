@@ -90,13 +90,41 @@ class Segment:
         self.effects_to_be_applied = segment_bp.get_effects_list()
         self.blueprint = segment_bp
         #below could be seperated to act only once its needed if ever needed
-        self.vfc = parent_vfc.subclip(segment_bp.get_start(), segment_bp.get_end())
+        self.vfc = parent_vfc.subclip(segment_bp.get_start_time(), segment_bp.get_end_time())
 
+    def __repr__(self) -> str:
+        return F"(effects_tba:{self.effects_to_be_applied})"
     
-    def get_vfc(self):
+    def get_vfc(self) -> moviepy.VideoFileClip:
         return self.vfc
-    def get_effects_to_be_applied(self):
+    def get_effects_to_be_applied(self) -> list[Effect]:
         return self.effects_to_be_applied
+    
+    def set_vfc(self, vfc):
+        self.vfc = vfc
+
+    def remove_effect_to_be_applied(self, effect):
+        self.effects_to_be_applied.remove(effect)
+    
+    def has_effect(self, effect):
+        effect in self.effects_to_be_applied
+
+    @staticmethod
+    def apply_effect_to_segment_s(segment_or_segment_list, effect:Effect):
+        if type(segment_or_segment_list) == Segment:
+            segments_list = [segment_or_segment_list]
+        else:
+            segments_list = segment_or_segment_list
+        
+        #V not sure if this modifies the original input so returning it just in case
+        function = effect.get_function()
+        segments_list = function(segments_list)
+        for i in segments_list:
+            i.remove_effect_to_be_applied(effect)
+        
+        return segments_list
+        
+    
     
     
 

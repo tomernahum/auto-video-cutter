@@ -34,9 +34,13 @@ class effect_toggle:
     def get_effect(self):
         return self.effect
 
-    def increment(self):
-        self.effect.increment_part_num()
-        self.total_part_num += 1
+    def increment(self): 
+        try:
+            self.effect.increment_part_num()
+            #self.total_part_num += 1
+        except:
+            pass
+    
     
     def set_part_num(self, n):
         if not self.get_effect().get_is_homogenius():
@@ -50,15 +54,32 @@ class effect_toggle:
             return True
         return False
     
+    def is_final_toggle(self):
+        return self.has_no_effect()
+    
     pass
 
 
 
 #main
 def combine_segment_blueprints(segment_blueprints_list: list[SegmentBlueprint]):
-    _print_list(segment_blueprints_list, "sbl!")
-    effect_toggles = get_effect_toggles(segment_blueprints_list)
+    segment_blueprints_list.sort(key=lambda x: x.get_start_time())
+    #_print_list(segment_blueprints_list, "sbl!")
     
+    effect_toggles = get_effect_toggles(segment_blueprints_list)
+    output_sbps = convert_toggles_to_sbp_list_alt(effect_toggles)
+    
+    #_print_list(effect_toggles, "toggles")
+    #_print_list(output_sbps, "dirty output")
+
+    for index, sbp in enumerate(output_sbps[0:1]):  #reorginize
+        if sbp.get_start_time() == sbp.get_end_time():
+            del output_sbps[index]
+    
+    #_print_list(output_sbps, "cleaned output")
+    return output_sbps
+
+def convert_toggles_to_sbp_list(effect_toggles) -> list[SegmentBlueprint]:
     output_sbps = []
     
     active_effect_toggles = []
@@ -66,14 +87,17 @@ def combine_segment_blueprints(segment_blueprints_list: list[SegmentBlueprint]):
     for toggle in effect_toggles:
         #print(f"{toggle}, \n\t{active_effect_toggles}")
         
+        segment_is_of_length_zero = toggle.get_time() == last_timestamp
+
         #create the segment ending at this timestamp
-        effects_list = []
-        for active_effect in active_effect_toggles:
-            effects_list.append(active_effect.get_effect().get_new_obj())
-        output_sbps.append(SegmentBlueprint(last_timestamp, toggle.get_time(), effects_list))
+        if True:
+            effects_list = []
+            for active_effect in active_effect_toggles:
+                effects_list.append(active_effect.get_effect().get_new_obj())
+            output_sbps.append(SegmentBlueprint(last_timestamp, toggle.get_time(), effects_list))
 
 
-        #add the toggle to active_effects (affects the segment starting at this toggle)
+        #add/remove the toggle from active_effects (affects the segment starting at this toggle)
         if toggle.has_no_effect(): 
             break #only the final toggle has no effects
         
@@ -86,19 +110,77 @@ def combine_segment_blueprints(segment_blueprints_list: list[SegmentBlueprint]):
         
 
         #increment the part numbers of all the active_effects
-        for active_effect in active_effect_toggles:
-            i_is_heterogenius = not active_effect.get_effect().get_is_homogenius()
-            if i_is_heterogenius:
-                active_effect.increment()
+        if True:
+            for active_effect in active_effect_toggles:
+                i_is_heterogenius = not active_effect.get_effect().get_is_homogenius()
+                if i_is_heterogenius:
+                    active_effect.increment()
+        else:
+            pass
         
         last_timestamp = toggle.get_time()
         pass
-    
-    
     return output_sbps
 
 
 
+def convert_toggles_to_sbp_list_alt(toggles_list) -> list[SegmentBlueprint]:
+    output_sbps = []
+
+    active_effect_toggles = []
+    last_timestamp = 0
+    iterator = 0
+    while iterator < len(toggles_list):
+        
+        #build the segment ending at this toggle
+        output_sbps.append(build_segment_bp(active_effect_toggles, last_timestamp, current_timestamp=toggles_list[iterator].get_time()))
+
+        #get the current toggles (all toggles with the same time as next unproccessed toggle) & move the iterator past them
+        iterator, current_toggles = get_current_toggles_and_iterate(toggles_list, iterator) 
+        
+
+        #add/remove toggles from active effects
+        for current_toggle in current_toggles:
+            add_or_remove_toggle_from_active_toggles(active_effect_toggles, current_toggle)
+    
+        #increment the part number of all active effects
+        for active_toggle in active_effect_toggles:
+            active_toggle.increment()
+
+        
+        last_timestamp = current_toggles[-1].get_time()
+        iterator += 1
+    
+    return output_sbps
+
+def build_segment_bp(active_effect_toggles, last_timestamp, current_timestamp):
+    effects_list = []
+    for active_toggle in active_effect_toggles:
+        effects_list.append(active_toggle.get_effect().get_new_obj()) #if no get new obj part num continues to update
+    return SegmentBlueprint(last_timestamp, current_timestamp, effects_list)
+
+def get_current_toggles_and_iterate(toggles_list, iterator) -> tuple[list[effect_toggle], int]: 
+    current_toggles = [toggles_list[iterator]]
+    while True:
+        if iterator == len(toggles_list) - 1:
+            break
+            
+        if toggles_list[iterator+1].get_time() == current_toggles[0].get_time():
+            current_toggles.append(toggles_list[iterator+1])
+        else:
+            break
+        iterator += 1
+    return iterator, current_toggles
+
+def add_or_remove_toggle_from_active_toggles(active_toggles: list[effect_toggle], toggle: effect_toggle):
+    if toggle.has_no_effect():
+        return
+    
+    if toggle in active_toggles:
+        active_toggles.remove(toggle)
+    else:
+        toggle.set_part_num(0)
+        active_toggles.append(toggle)
 
 
 
@@ -185,18 +267,19 @@ I: (1,8 A1)  (2,3 A)  (2,5 A)  (4,5 A)  (7,9 A)
 
 
 
-
+if __name__ == "__main__":
+    pass
 
 
 
 
 
 def _print_list(list, title=None):
-    if True:
+    if False:
         return
     
     if title != None:
-        print(f"-----{title}-----")
+        print(f"\n-----{title}-----")
     try:
         for i in list:
             print(i)

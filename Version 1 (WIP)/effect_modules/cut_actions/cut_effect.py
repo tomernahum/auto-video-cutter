@@ -10,13 +10,15 @@ def get_cut_effect():
     return cut_effect
 
 def cut_function(segments_list): #Need to think on this
-    for clip in segments_list:
-        #not tested or correct stuff
+    output = []
+    for segment in segments_list:
+        vfc = segment.get_vfc()
+        segment.set_vfc(vfc.subclip(0,0))
+        output.append(segment)
+    return output
+        
 
-
-        image = ImageClip("example_data.jpg")
+"""
+image = ImageClip("example_data.jpg")
         output_clip = clips_array([clip, image])
-        pass
-        
-
-        
+"""

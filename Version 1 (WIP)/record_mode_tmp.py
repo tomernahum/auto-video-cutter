@@ -264,6 +264,9 @@ def start_record_mode(): #main
     global output_file
     global output_file_2
     
+    print("press alt space to start program")
+    keyboard.wait("alt+space")
+
     output_file_name = get_output_file_name()
     output_file = open(output_file_name, "w")
     output_file_2 = open("effects_test.txt", 'w')
@@ -333,7 +336,7 @@ def run_updating_display():
         
         to_print += "\t\tAccepted Time: "  + uncut_time
 
-        if False:
+        if True:
             to_print += "\tActive Effects: ["
             if not active_effects_list:  #if its empty
                 to_print += "None"

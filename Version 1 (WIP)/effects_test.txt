@@ -1,15 +1,18 @@
-Timestamps file for [autoeditor program] recorded on 2022-05-25 15:42:57.894236
-1.9	Flip
-3.01	Flip
-7.60	BlackWhite
-8.52	BlackWhite
-8.78	BlackWhite
-9.90	Flip
-10.95	BlackWhite
-12.93	BlackWhite
-16.47	BlackWhite
-26.97	Flip
-27.60	BlackWhite
-30.00	BlackWhite
-32.86	End
+Timestamps file for [autoeditor program] recorded on 2022-05-28 14:45:27.269939
+5.49	Flip
+8.35	Flip
+13.72	Flip
+14.38	BlackWhite
+26.43	Flip
+30.04	BlackWhite
+31.44	Flip
+32.76	Flip
+44.85	Flip
+45.58	Flip
+46.17	BlackWhite
+57.63	BlackWhite
+59.21	BlackWhite
+59.74	Flip
+61.51	BlackWhite
+62.4	Flip
 footer

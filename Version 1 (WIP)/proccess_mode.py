@@ -46,17 +46,70 @@ def main():
     
     plugins = get_list_of_plugin_apis(PLUGINS_DIRECTORY_NAME)
     main_vfc = get_video_file()
+    print("got plugins & video file")
 
     segment_blueprints_list = get_segment_blueprints_from_plugins(plugins) #file = get_open_file()
+    print("got segment bps")
     segment_blueprints_list = combine_segment_blueprints(segment_blueprints_list)
+    
+    print("combined segment bps")
 
     #convert segment blueprints to segments with VFC clips & effects_to_be_applied
     segments_list = get_segments_list_from_blueprints(segment_blueprints_list, main_vfc)
-    segments_list = apply_effects_to_segments(segments_list)
+    print("converted bps to real segments")
+    _print_list(segments_list, "segments")
+    return
+    apply_effects_to_segments(segments_list) #bug reported here - segment is showing up as a list (some of the time)
+    print("applied all effects")
 
-    pass
+    output_clips = []
+    for i in segments_list:
+        output_clips.append(i.get_vfc)
+    _print_list(output_clips)
+    output_vfc = moviepy.concatenate_videoclips(output_clips)
+    output_vfc.write_videofile("output.mp4")
 
-def apply_effects_to_segments(segments_list):
+def apply_effects_to_segments(segments_list: list[Segment]):
+    #WIP
+    segments_list = segments_list.copy()
+    
+    
+    for index in range(len(segments_list)):
+        segment = segments_list[index]
+        #print(f"--{index}\t {segment}")
+        for effect in segment.get_effects_to_be_applied():
+            if effect.get_is_homogenius():
+                segment = Segment.apply_effect_to_segment_s(segment, effect)
+                segments_list[index] = segment #Q/A possibly redundant I dk
+            
+            else: #if heterogenius
+                #find segments with the rest of this effect
+                segments_to_be_proccessed = []
+                i = index
+                #print(f"segments_list 8-12: {segments_list[8:12]}\n")
+                #print(f"segments_list: {segments_list}")
+                #print(f"\t\t-{index}\t {segments_list[i]}")
+                
+                def get_segment(n):  #TODO Jank fix to bug should investigate
+                    output = segments_list[n]
+                    if isinstance(output, list):
+                        return output[0]
+                    else:
+                        return output
+                
+                while get_segment(i).has_effect(effect): #wierd bug happens 3/4 of times
+                    segments_to_be_proccessed.append(segments_list[i])
+                    i = i + 1
+                
+                #apply the effect
+                segments_to_be_proccessed = Segment.apply_effect_to_segment_s(segment, effect) 
+                segments_list[index : i-1] = segments_to_be_proccessed #Q/A see below
+                #I don't know exactly what is a reference to the original object / a new one so i put above just in case
+
+            
+    return
+
+
     pass
 
 
@@ -135,9 +188,9 @@ def get_list_of_plugin_names(plugins_folder):  #Q/A what if this was indented in
 
 
 def get_video_file():
-    return None
-    main_video_file_name = input("Enter the video file name: ")
-    main_video_file_name = "NOnE"
+    #return None
+    main_video_file_name = "new_test.mkv"
+    #main_video_file_name = input("Enter the video file name: ")
     main_vfc = moviepy.VideoFileClip(main_video_file_name)
     return main_vfc
 
@@ -153,16 +206,19 @@ def testing():
 
 
 def _print_list(list, title=None):
+    #return
     if __name__ != "__main__":
         return
     
     if title != None:
-        print(f"-----{title}-----")
+        print(f"\n-----{title}-----")
     try:
         for i in list:
             print(i)
     except:
         print(list)
+    
+    print(f"----------")
 
 if __name__ == "__main__":
     main()
