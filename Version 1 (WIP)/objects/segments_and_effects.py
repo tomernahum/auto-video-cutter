@@ -62,6 +62,7 @@ class EffectPart(Effect): #Q/A is inherentance better (or any different)?
     def __init__(self, effect:Effect, part_num) -> None: 
         super().__init__(effect.name, effect.function, effect.is_homogenius) #Q/A I want it to do this automatically in case I ever add attributes but I dont know how
         self.part_num = part_num
+        #self.part_id
 
     def __repr__(self) -> str:
         return  f"({self.name}, {self.part_num})"
@@ -109,6 +110,7 @@ class Segment:
     def has_effect(self, effect):
         effect in self.effects_to_be_applied
 
+    #WIP/Bad
     @staticmethod
     def apply_effect_to_segment_s(segment_or_segment_list, effect:Effect):
         if type(segment_or_segment_list) == Segment:
