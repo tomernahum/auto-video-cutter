@@ -57,8 +57,8 @@ def main():
     #convert segment blueprints to segments with VFC clips & effects_to_be_applied
     segments_list = get_segments_list_from_blueprints(segment_blueprints_list, main_vfc)
     print("converted bps to real segments")
-    _print_list(segments_list, "segments")
-    return
+    #_print_list(segments_list, "segments")
+    #return
     apply_effects_to_segments(segments_list) #bug reported here - segment is showing up as a list (some of the time)
     print("applied all effects")
 
@@ -71,43 +71,21 @@ def main():
 
 def apply_effects_to_segments(segments_list: list[Segment]):
     #WIP
-    segments_list = segments_list.copy()
+    #segments_list = segments_list.copy()
     
+    """_print_list(segments_list, "segments_list", mode="type")
     
+    print("/n----index in segments_list------")
     for index in range(len(segments_list)):
         segment = segments_list[index]
-        #print(f"--{index}\t {segment}")
-        for effect in segment.get_effects_to_be_applied():
-            if effect.get_is_homogenius():
-                segment = Segment.apply_effect_to_segment_s(segment, effect)
-                segments_list[index] = segment #Q/A possibly redundant I dk
-            
-            else: #if heterogenius
-                #find segments with the rest of this effect
-                segments_to_be_proccessed = []
-                i = index
-                #print(f"segments_list 8-12: {segments_list[8:12]}\n")
-                #print(f"segments_list: {segments_list}")
-                #print(f"\t\t-{index}\t {segments_list[i]}")
-                
-                def get_segment(n):  #TODO Jank fix to bug should investigate
-                    output = segments_list[n]
-                    if isinstance(output, list):
-                        return output[0]
-                    else:
-                        return output
-                
-                while get_segment(i).has_effect(effect): #wierd bug happens 3/4 of times
-                    segments_to_be_proccessed.append(segments_list[i])
-                    i = i + 1
-                
-                #apply the effect
-                segments_to_be_proccessed = Segment.apply_effect_to_segment_s(segment, effect) 
-                segments_list[index : i-1] = segments_to_be_proccessed #Q/A see below
-                #I don't know exactly what is a reference to the original object / a new one so i put above just in case
+        print(f"type: {type(segment)},   repr: {segment}")
+        print(f"|--    effects_list: {segment.get_effects_to_be_applied()}")
+    print("done!")"""
 
-            
-    return
+
+    from helper_functions import apply_effects_to_segments as aets
+    return aets.main(segments_list)
+           
 
 
     pass
@@ -116,11 +94,15 @@ def apply_effects_to_segments(segments_list: list[Segment]):
 
 
 def get_segments_list_from_blueprints(segment_blueprints_list, main_vfc):
-    #_print_list(segment_blueprints_list)
+    _print_list(segment_blueprints_list, "input bps")
     output_list = []
     for blueprint in segment_blueprints_list:
         output_list.append(Segment(blueprint, main_vfc))
-    
+    _print_list(output_list, "output segments")
+
+    for i in output_list:
+        print(type(i))
+
     return output_list
 
 
@@ -205,20 +187,23 @@ def testing():
     #_print_list(realtest)
 
 
-def _print_list(list, title=None):
+def _print_list(list, title=None, mode=None):
     #return
     if __name__ != "__main__":
         return
     
     if title != None:
         print(f"\n-----{title}-----")
-    try:
+    
+    if mode == None or mode in {"normal","default"}:
         for i in list:
             print(i)
-    except:
-        print(list)
     
-    print(f"----------")
+    elif mode == "type":
+        for i in list:
+            print(type(i))
+    
+    print(f"\n")
 
 if __name__ == "__main__":
     main()

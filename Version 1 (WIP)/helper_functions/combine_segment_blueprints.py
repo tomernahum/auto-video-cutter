@@ -1,4 +1,5 @@
 from cgi import print_directory
+from doctest import master
 from time import time
 from objects.segments_and_effects import *
 
@@ -63,23 +64,19 @@ class effect_toggle:
 
 #main
 def combine_segment_blueprints(segment_blueprints_list: list[SegmentBlueprint]):
+    return combine_segment_blueprints_alternate(segment_blueprints_list)
+
     segment_blueprints_list.sort(key=lambda x: x.get_start_time())
-    #_print_list(segment_blueprints_list, "sbl!")
-    
     effect_toggles = get_effect_toggles(segment_blueprints_list)
     output_sbps = convert_toggles_to_sbp_list_alt(effect_toggles)
-    
-    #_print_list(effect_toggles, "toggles")
-    #_print_list(output_sbps, "dirty output")
-
-    for index, sbp in enumerate(output_sbps[0:1]):  #reorginize
-        if sbp.get_start_time() == sbp.get_end_time():
-            del output_sbps[index]
-    
-    #_print_list(output_sbps, "cleaned output")
     return output_sbps
+    
+    #_print_list(segment_blueprints_list, "sbl!")
+    #_print_list(effect_toggles, "toggles")
+    #_print_list(output_sbps, "output")
 
-def convert_toggles_to_sbp_list(effect_toggles) -> list[SegmentBlueprint]:
+
+"""def convert_toggles_to_sbp_list(effect_toggles) -> list[SegmentBlueprint]:
     output_sbps = []
     
     active_effect_toggles = []
@@ -120,7 +117,9 @@ def convert_toggles_to_sbp_list(effect_toggles) -> list[SegmentBlueprint]:
         
         last_timestamp = toggle.get_time()
         pass
-    return output_sbps
+    
+    
+    return output_sbps"""
 
 
 
@@ -150,6 +149,9 @@ def convert_toggles_to_sbp_list_alt(toggles_list) -> list[SegmentBlueprint]:
         
         last_timestamp = current_toggles[-1].get_time()
         iterator += 1
+    
+    if output_sbps[0].get_end_time() == 0:
+        del output_sbps[0]
     
     return output_sbps
 
@@ -226,18 +228,6 @@ def get_effect_toggles(segment_blueprints_list: list[SegmentBlueprint]) -> list[
 
 
 
-def combine_segment_blueprints_alt(segment_blueprints_list: list[SegmentBlueprint]):
-    effect_toggles = get_effect_toggles(segment_blueprints_list)
-    
-    new_segment_bps = get_empty_bps_from_toggles(effect_toggles)
-
-    active_toggles = []
-    for toggle in effect_toggles:
-        
-        if toggle in active_toggles:
-            active_toggles.remove(toggle)
-        else:
-            active_toggles.append(toggle)
         
 
 
@@ -285,3 +275,101 @@ def _print_list(list, title=None):
             print(i)
     except:
         print(list)
+
+
+
+
+def combine_segment_blueprints_alternate(segment_blueprints_list: list[SegmentBlueprint]):
+    _print_list(segment_blueprints_list, "input")
+    print("\n")
+    
+    start_time = 0
+    end_time = max(segment_blueprints_list, key=lambda x: x.get_end_time()).get_end_time()
+    output_bps = [SegmentBlueprint(start_time, end_time)]
+    
+    
+    print(f"Master list: {output_bps}")
+    for segment_blueprint in segment_blueprints_list:
+        output_bps = overlay_segment(output_bps, segment_blueprint)
+        print(f"Output blueprints: {output_bps}  -- added {segment_blueprint}")
+    
+    _print_list(output_bps, "output")
+
+    quit()
+    #return output_bps
+
+def overlay_segment(master_segments_list:list[SegmentBlueprint], segment_to_overlay:SegmentBlueprint):
+
+    overlay_effects = segment_to_overlay.get_effects_list()
+
+    output_list = []
+    for native_segment in master_segments_list:
+
+        #does overlay segment overlap with native segment?
+        start_overlaps, end_overlaps, completely_overlaps, doesnt_overlap = overlaps(native_segment, segment_to_overlay)
+        
+        if doesnt_overlap:
+            output_list.append(native_segment)
+        
+        elif completely_overlaps: 
+            new_segment = native_segment  #may be reference to same object but it doesnt matter
+            for i in overlay_effects:
+                new_segment.add_effect(i)
+            #increment part number
+            output_list.append(new_segment)
+        
+        elif start_overlaps or end_overlaps:
+            #could be made to repeat less code / therefore cleaner
+            native_effects = native_segment.get_effects_list()
+            native_start = native_segment.get_start_time()
+            native_end = native_segment.get_end_time()
+            overlay_start = segment_to_overlay.get_start_time()
+            overlay_end = segment_to_overlay.get_end_time()
+
+            if start_overlaps and end_overlaps:
+                new_segment_1 = SegmentBlueprint(native_start, overlay_start, native_effects.copy())
+                new_segment_2 = SegmentBlueprint(overlay_start, overlay_end, native_effects.copy())
+                new_segment_3 = SegmentBlueprint(overlay_end, overlay_start, native_effects.copy())
+
+                for i in overlay_effects:
+                    new_segment_2.add_effect(i)
+                
+                output_list.append(new_segment_1)
+                output_list.append(new_segment_2)
+                output_list.append(new_segment_3)
+
+            elif start_overlaps:
+                divider_timestamp = overlay_start
+                new_segment_1 = SegmentBlueprint(native_start, divider_timestamp, native_effects.copy())
+                new_segment_2 = SegmentBlueprint(divider_timestamp, native_end, native_effects.copy())
+                for i in overlay_effects:
+                    new_segment_2.add_effect(i)
+                output_list.append(new_segment_1)
+                output_list.append(new_segment_2)
+
+            elif end_overlaps:
+                divider_timestamp = overlay_end
+                new_segment_1 = SegmentBlueprint(native_start, divider_timestamp, native_effects.copy())
+                new_segment_2 = SegmentBlueprint(divider_timestamp, native_end, native_effects.copy())
+                for i in overlay_effects:
+                    new_segment_1.add_effect(i) #damn thing references both of them wait did it
+                output_list.append(new_segment_1)
+                output_list.append(new_segment_2)
+            pass
+    
+    return output_list
+
+
+def overlaps(native_segment:SegmentBlueprint, segment_to_overlay:SegmentBlueprint):
+    native_start = native_segment.get_start_time()
+    native_end = native_segment.get_end_time()
+    overlay_start = segment_to_overlay.get_start_time()
+    overlay_end = segment_to_overlay.get_end_time()
+    
+    start_overlaps = overlay_start > native_start and overlay_start < native_end   #overlay start is within segment
+    end_overlaps = overlay_end > native_start and overlay_end < native_end   #overlay end is within segment
+    completely_overlaps =  overlay_start <= native_start and overlay_end >= native_end  #segment completly within overlay segment
+    doesnt_overlap = not(start_overlaps or end_overlaps or completely_overlaps)
+
+
+    return start_overlaps, end_overlaps, completely_overlaps, doesnt_overlap

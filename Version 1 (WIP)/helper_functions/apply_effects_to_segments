@@ -1,0 +1,74 @@
+from objects.segments_and_effects import *
+
+def main(segments_list: list[Segment]):
+    #needs some awareness of the larger system
+
+
+    
+    
+    pass
+
+
+
+"""
+System:
+each plugin produces a list of segment blueprints w effects
+proccess mode gets those and combines them
+then it turns them in to segments with 0-many effects
+then it applies each effect & writes the file
+
+Applying effects:
+2 kinds of effects:
+    - heterogenius
+    - homogenius
+
+
+Potential applying proccess 1:
+    1. apply all homogenius effects 
+    2. apply heterogenius effects:
+
+    1. 
+
+
+
+
+
+testi
+"""
+
+
+def old():
+    for index in range(len(segments_list)):
+        segment = segments_list[index]
+        #print(f"--{index}\t {segment}")
+        for effect in segment.get_effects_to_be_applied():
+            if effect.get_is_homogenius():
+                segment = Segment.apply_effect_to_segment_s(segment, effect)
+                segments_list[index] = segment #Q/A possibly redundant I dk
+            
+            else: #if heterogenius
+                #find segments with the rest of this effect
+                segments_to_be_proccessed = []
+                i = index
+                #print(f"segments_list 8-12: {segments_list[8:12]}\n")
+                #print(f"segments_list: {segments_list}")
+                #print(f"\t\t-{index}\t {segments_list[i]}")
+                
+                def get_segment(n):  #TODO Jank fix to bug should investigate
+                    output = segments_list[n]
+                    if isinstance(output, list):
+                        return output[0]
+                    else:
+                        return output
+                
+                while get_segment(i).has_effect(effect): #wierd bug happens 3/4 of times
+                    segments_to_be_proccessed.append(segments_list[i])
+                    i = i + 1
+                
+                #apply the effect
+                segments_to_be_proccessed = Segment.apply_effect_to_segment_s(segment, effect) 
+                segments_list[index : i-1] = segments_to_be_proccessed #Q/A see below
+                #I don't know exactly what is a reference to the original object / a new one so i put above just in case
+
+            
+    return

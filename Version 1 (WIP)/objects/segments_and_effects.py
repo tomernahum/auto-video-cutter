@@ -24,6 +24,8 @@ class SegmentBlueprint:
         if self.effects_list == []:
             return False
         return True
+    
+    
 
 
 class Effect:
