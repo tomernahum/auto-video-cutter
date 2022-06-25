@@ -53,23 +53,30 @@ class ControlProccessing:
 class ToggleEffectsProccessing:
     effect_category = "toggle_effect"
     
-    class ActiveEffect:
+    class ToggledEffect:
         def __init__(self, effect) -> None:
             self.effect = effect
             self.timer = None #will be timer object (or just implement timer directly)
         
         def __eq__(self, other): #used for finding in list to remove
-            return self.effect.name == other.effect.name
+            self_name = self.effect.name
+            try:
+                other_name = other.effect.name
+            except AttributeError:
+                other_name = other.name
+            
+            return self_name == other_name
 
     def __init__(self):
         self.active_effects = []
 
-    def trigger(self, effect:EffectData, display, writer): #will get called when hotkey is pressed #Q/A I can't specify the types of everything since its later in the file and they feed into each other - is them feeding in to each other bad design?
-        effect_is_active = self.is_effect_active
+    def trigger(self, effect:EffectData, display:"Display", writer): #will get called when hotkey is pressed #Q/A I can't specify the types of everything since its later in the file and they feed into each other - is them feeding in to each other bad design?
+        effect_is_active = self.is_effect_active(effect)
         if effect_is_active:
             self._on_active_effect_triggered(effect, display, writer)
         else:
             self._on_inactive_effect_triggered(effect, display, writer)
+        #may have to ask user for input - i guess we should pass in engine for that right? thats kosher right?
         pass
             
     def _on_inactive_effect_triggered(self, effect, display, writer):
@@ -84,15 +91,16 @@ class ToggleEffectsProccessing:
 
     #todo idea: maybe needs in-between thing for converting events into display requests?
     
-    def get_active_effects(self):
+    def get_toggled_effects(self):
         return self.active_effects
    
     def add_active_effect(self, effect):
-        self.active_effects.append(self.ActiveEffect(effect))
+        self.active_effects.append(self.ToggledEffect(effect))
     
     def remove_active_effect(self, effect):
         self.active_effects.remove(effect)
     def is_effect_active(self, effect):
+        
         return effect in self.active_effects
     
 
@@ -123,9 +131,16 @@ class Engine():
         self.type_proccessing_objs = dict()
 
         self.display = Display()
-        self.writer = Writer()
+        self.writer : Writer = None #needs to be initialized w filename
+
+        #self.display_interface = DisplayInterfaceConcept()
         
         self.main_timer = None
+
+    def get_display_obj(self) -> "Display":
+        return self.dispaly
+    def get_writer_obj(self) -> "Writer":
+        return self.writer
 
     def _register_hotkeys_and_effects(self):
         #control
@@ -142,6 +157,7 @@ class Engine():
         self.hotkey_effects_lookup.register("alt+z", EffectData("bw", "toggle_effect"))
 
         #more effects & possibly proccessing objects will be registered by plugins + custom hotkeys will be implemented somehow
+        #possibly should allow duplicate of ProccessingObjects?
     
     def _register_proccessing_objects(self):
         self.type_proccessing_objs["control"] = ControlProccessing
@@ -153,10 +169,16 @@ class Engine():
         self._register_hotkeys_and_effects()
         self._register_proccessing_objects()
 
+        #get output file name (probably from user) / initialize writer
+        filename = "test.txt"
+        self.writer = Writer(filename)
+
         #add hotkey listeners with keyboard module
         for hotkey in self.hotkey_effects_lookup.get_keys():
             keyboard.add_hotkey(hotkey, self.on_hotkey_press, args=[hotkey])
-            
+        
+        #wait for user to indicate start
+        "tbd"
 
         #start display/ui
         self.display.run_updating_display(self.type_proccessing_objs["toggle_effect"])
@@ -169,32 +191,75 @@ class Engine():
         proccessing_obj.trigger(effect, self.display, self.writer)
         #idea: could later abstract input so i can have hotkeys + streamdeck/touchportal/etc + hand gesture ai detection + etc
 
+    def end_record_mode(self):
+        self.display.stop_display()
+        self.writer.close_writer()
+    
+    def pause_recording(self):
+        pass
+
+#next: pass VV object into proccessing_objs instead of whats there + implement control proccessing obj
+class ProccessingObjInterfaceConcept():
+    def __init__(self, engine:"Engine") -> None:
+        self.engine = engine
+        self.display = engine.get_display_obj()
+        self.writer = engine.get_writer_obj()
+    
+    def print_to_display(self, to_print, info=None):
+        self.display.print(to_print, info)
+    
+
+    def write_effect_to_file(self, effect_name, start_time, stop_time, parameters:list):
+        self.writer.write_effect_to_file(effect_name, start_time, stop_time, parameters)
+        return
+        to_write = [effect_name, start_time, stop_time].extend(parameters)
+        self.writer.write_effect_to_file_1_str(to_write)
+    
+    def write_effect_to_file_1_str(self, to_write:str):
+        self.writer.write_effect_to_file_1_str(to_write)
+    
+
+    def end(self):
+        self.engine.end_record_mode()
+        
 
 class Display:
     def __init__(self) -> None:
-        self.updating_display_is_ended = False
         pass
     
-    def run_updating_display(self, toggle_effects_proccessing:ToggleEffectsProccessing ):
+
+    def _get_toggled_effects(self, toggle_effects_proccessing): #may find a better design pattern for this
+        toggle_effects_proccessing.get_toggled_effects()
+
+    def run_updating_display(self, toggle_effects_proccessing:ToggleEffectsProccessing):
         
+        self.updating_display_is_ended = False
         #updating display
         while self.updating_display_is_ended == False:
-            active_effects = toggle_effects_proccessing.get_active_effects()
+            active_effects = self._get_toggled_effects(toggle_effects_proccessing)
             self.update_updating_display(active_effects)
             time.sleep(1)
     
     
-    def update_updating_display(self, active_effects):
+    def update_updating_display(self, toggled_on_effects):
+        #next: figure out interaction with ToggledEffects should it be done in display or toggleeffectproccessing (or somewhere else in between), if done in display where
         
         active_effects_string = ""
-        for active_effect in active_effects:
-            active_effects_string += f"{active_effect.name}(N/A), "
+        for effect in toggled_on_effects:
+            active_effects_string += f"{effect.effect.name}(N/A), "
 
 
         print(f"active effects: {active_effects_string}")
 
-    def print(self, to_print, info):
+    def print(self, to_print, info=None):
         print(info)
+    
+    def stop_display(self):
+        self.updating_display_is_ended = True
+        #self.display_is_ended = True
+
+
+
 
 
 class Writer:
@@ -203,8 +268,11 @@ class Writer:
     
 
     def __init__(self) -> None:
-        pass
-        
+        pass #probably open file here
+    
+    
+    def close_writer(self):
+        pass #close file
     
     def write_effect_to_file(self, effect_name, start_time, stop_time, parameters:list):
         to_write = [effect_name, start_time, stop_time].extend(parameters)
@@ -212,7 +280,7 @@ class Writer:
         #self.file.write(to_write)
     
     def write_effect_to_file_1_str(self, to_write:str):
-        pass
+        print(to_write)
 
 
 
