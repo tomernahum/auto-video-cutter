@@ -29,7 +29,7 @@ class ControlProccessing:
 
         self.timer = None #will be timer
 
-    def trigger(self, effect:EffectData, display, writer):
+    def trigger(self, effect:EffectData, display, writer): #called on
         if effect == "start_or_end":      #could use case (it that does require python 3.10 which could be annoying maybe)
             if self.started == False: self.trigger_start()
             else: self.trigger_end()
@@ -47,6 +47,9 @@ class ControlProccessing:
         pass
 
     def trigger_end(self):
+        pass
+
+    def finish_up(self, WIP): #called on
         pass
 
 
@@ -109,6 +112,9 @@ class ToggleEffectsProccessing:
         for effect in self.active_effects:
             output += effect.name
         return output
+
+    def finish_up(self, WIP): #called on at the end of the program
+        pass
     
     #todo: need stuff to interface with active effect timers 
     # - I think the active_effect class should be a part of this only so its more modular
@@ -192,13 +198,16 @@ class Engine():
         #idea: could later abstract input so i can have hotkeys + streamdeck/touchportal/etc + hand gesture ai detection + etc
 
     def end_record_mode(self):
+        for proccessing_obj in self.type_proccessing_objs:
+            proccessing_obj.finish_up()
+        
         self.display.stop_display()
         self.writer.close_writer()
     
     def pause_recording(self):
         pass
 
-#next: pass VV object into proccessing_objs instead of whats there + implement control proccessing obj
+#next: pass VV object into proccessing_objs instead of whats there + implement control proccessing obj (then implement abstract class)
 class ProccessingObjInterfaceConcept():
     def __init__(self, engine:"Engine") -> None:
         self.engine = engine
