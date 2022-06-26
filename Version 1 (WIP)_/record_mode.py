@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List
 import keyboard
@@ -9,17 +10,25 @@ class EffectData:
     type : str #should potentially look into enums - nah
     #id: str #could implement for 2 of the same effect so they dont get confused
     
-    #will have more stuff like wants_input (maybe make that dynamic?) actually thats a whole thing I will figure out later
+    #will have more stuff like wants_input (maybe make that dynamic?) actually thats a whole thing I will figure out later 
     
     def __eq__(self, other):
         return self.name == other.name or self.name == other
 
 
-class Proccessing():
-    #will be an abstract class or interface or whatnot for proccessing
-    pass
+class ProccessingObj(ABC):
+    
+    @abstractmethod
+    def trigger(self, effect:"EffectData", interface:"EngineInterface"):
+        pass
+    
+    @abstractmethod
+    def finish_up(self, interface:"EngineInterface"):
+        pass
 
-class ControlProccessing:
+    
+
+class ControlProccessing(ProccessingObj):
     effect_category = "control"
 
     def __init__(self) -> None:
@@ -29,7 +38,7 @@ class ControlProccessing:
 
         self.timer = None #will be timer
 
-    def trigger(self, effect:EffectData, display, writer): #called on
+    def trigger(self, effect, interface:"EngineInterface"): #called on
         if effect == "start_or_end":      #could use case (it that does require python 3.10 which could be annoying maybe)
             if self.started == False: self.trigger_start()
             else: self.trigger_end()
@@ -53,7 +62,7 @@ class ControlProccessing:
         pass
 
 
-class ToggleEffectsProccessing:
+class ToggleEffectsProccessing(ProccessingObj):
     effect_category = "toggle_effect"
     
     class ToggledEffect:
@@ -73,22 +82,22 @@ class ToggleEffectsProccessing:
     def __init__(self):
         self.active_effects = []
 
-    def trigger(self, effect:EffectData, display:"Display", writer): #will get called when hotkey is pressed #Q/A I can't specify the types of everything since its later in the file and they feed into each other - is them feeding in to each other bad design?
+    def trigger(self, effect:EffectData, interface:"EngineInterface"): #will get called when hotkey is pressed #Q/A I can't specify the types of everything since its later in the file and they feed into each other - is them feeding in to each other bad design?
         effect_is_active = self.is_effect_active(effect)
         if effect_is_active:
-            self._on_active_effect_triggered(effect, display, writer)
+            self._on_active_effect_triggered(effect, interface)
         else:
-            self._on_inactive_effect_triggered(effect, display, writer)
+            self._on_inactive_effect_triggered(effect, interface)
         #may have to ask user for input - i guess we should pass in engine for that right? thats kosher right?
         pass
             
-    def _on_inactive_effect_triggered(self, effect, display, writer):
+    def _on_inactive_effect_triggered(self, effect, interface:"EngineInterface"):
         self.add_active_effect(effect)
-        display.print(f"Activated {effect.name} effect", self.effect_category)
+        interface.print_to_display(f"Activated {effect.name} effect", self.effect_category)
     
-    def _on_active_effect_triggered(self, effect, display, writer):
+    def _on_active_effect_triggered(self, effect, interface:"EngineInterface"):
         self.remove_active_effect(effect)
-        display.print(f"Deactivated {effect.name} effect", self.effect_category)
+        interface.print_to_display(f"Deactivated {effect.name} effect", self.effect_category)
         #write to file
         pass
 
@@ -137,14 +146,15 @@ class Engine():
         self.type_proccessing_objs = dict()
 
         self.display = Display()
-        self.writer : Writer = None #needs to be initialized w filename
+        self.writer : Writer = None #needs to be initialized w filename (todo make cleaner)
+        self.interface = EngineInterface(self)
 
         #self.display_interface = DisplayInterfaceConcept()
         
         self.main_timer = None
 
     def get_display_obj(self) -> "Display":
-        return self.dispaly
+        return self.display
     def get_writer_obj(self) -> "Writer":
         return self.writer
 
@@ -179,6 +189,7 @@ class Engine():
         filename = "test.txt"
         self.writer = Writer(filename)
 
+
         #add hotkey listeners with keyboard module
         for hotkey in self.hotkey_effects_lookup.get_keys():
             keyboard.add_hotkey(hotkey, self.on_hotkey_press, args=[hotkey])
@@ -194,7 +205,7 @@ class Engine():
     def on_hotkey_press(self, hotkey):
         effect = self.hotkey_effects_lookup.lookup(hotkey)
         proccessing_obj : object = self.type_proccessing_objs[effect.type]  #eventually put abstract method instead of :object
-        proccessing_obj.trigger(effect, self.display, self.writer)
+        proccessing_obj.trigger(effect, self.interface)
         #idea: could later abstract input so i can have hotkeys + streamdeck/touchportal/etc + hand gesture ai detection + etc
 
     def end_record_mode(self):
@@ -208,7 +219,7 @@ class Engine():
         pass
 
 #next: pass VV object into proccessing_objs instead of whats there + implement control proccessing obj (then implement abstract class)
-class ProccessingObjInterfaceConcept():
+class EngineInterface(): #still workshopping names - actually that applies to many of the names
     def __init__(self, engine:"Engine") -> None:
         self.engine = engine
         self.display = engine.get_display_obj()
@@ -227,6 +238,7 @@ class ProccessingObjInterfaceConcept():
     def write_effect_to_file_1_str(self, to_write:str):
         self.writer.write_effect_to_file_1_str(to_write)
     
+    #ask for user input
 
     def end(self):
         self.engine.end_record_mode()
@@ -276,9 +288,12 @@ class Writer:
     file : object #whatever is returned by open("filename.txt", 'w')
     
 
-    def __init__(self) -> None:
-        pass #probably open file here
+    def __init__(self, filename) -> None:
+        self.file_name = filename
+        self.open_file()
     
+    def open_file(self):
+        self.file = open(self.file_name, "w")
     
     def close_writer(self):
         pass #close file
@@ -317,7 +332,18 @@ if True:
 
 
 
-quit()
+#quit()
+
+"""
+
+
+
+    - Engine + Display + Writer
+
+"""
+
+
+
 
 """
 could get:
