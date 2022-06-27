@@ -1,30 +1,48 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
 from typing import List
 import keyboard
 import time
 
+from timer import Timer
+
+
 @dataclass #idk if this is good or bad or what - prob will end up converting it to normal which would be a pain to do if i use getters and setters
-class EffectData:
-    name : str
+class Command(): #todo: make a protocol essentially
+    name : str #will probably get rid of name once command inheretence stuff is set up
     type : str #should potentially look into enums - nah
     #id: str #could implement for 2 of the same effect so they dont get confused
     
     #will have more stuff like wants_input (maybe make that dynamic?) actually thats a whole thing I will figure out later 
     
-    def __eq__(self, other):
-        return self.name == other.name or self.name == other
+    """def __eq__(self, other): #WIP
+        return self.name == other.name or self.name == other"""
+
+
+class CommandDraft(ABC): #WIP
+    @abstractproperty
+    def type(self) -> str: #aka which proccessor to send it to
+        return "abstract_command"
+
+    def get_type(self) -> str:
+        return self.type
+
 
 
 class ProccessingObj(ABC):
     
     @abstractmethod
-    def trigger(self, effect:"EffectData", interface:"EngineInterface"):
+    def trigger(self, command:"Command", interface:"EngineInterface", time:"float"):
         pass
     
     @abstractmethod
-    def finish_up(self, interface:"EngineInterface"):
+    def finish_up(self, interface:"EngineInterface", time:"float"):
         pass
+
+    #can be overwritten or not - i think this would be the right implementation
+    def get_running_display_info(self, current_time:float): #might be inneficient to have everygthing give info all the time even if it doesnt need to. Or is it? #Q/A
+        return None
+    
 
     
 
@@ -38,14 +56,14 @@ class ControlProccessing(ProccessingObj):
 
         self.timer = None #will be timer
 
-    def trigger(self, effect, interface:"EngineInterface"): #called on
-        if effect == "start_or_end":      #could use case (it that does require python 3.10 which could be annoying maybe)
+    def trigger(self, command, interface:"EngineInterface", time): #called on
+        if command == "start_or_end":      #could use case (it that does require python 3.10 which could be annoying maybe)
             if self.started == False: self.trigger_start()
             else: self.trigger_end()
 
-        elif effect == "start":
+        elif command == "start":
             self.trigger_start()
-        elif effect == "end":
+        elif command == "end":
             self.trigger_end()
         
         else:
@@ -62,7 +80,7 @@ class ControlProccessing(ProccessingObj):
         pass
 
 
-class ToggleEffectsProccessing(ProccessingObj):
+class ToggleEffectsProccessing_old(ProccessingObj):
     effect_category = "toggle_effect"
     
     class ToggledEffect:
@@ -82,13 +100,15 @@ class ToggleEffectsProccessing(ProccessingObj):
     def __init__(self):
         self.active_effects = []
 
-    def trigger(self, effect:EffectData, interface:"EngineInterface"): #will get called when hotkey is pressed #Q/A I can't specify the types of everything since its later in the file and they feed into each other - is them feeding in to each other bad design?
+    def trigger(self, effect:Command, interface:"EngineInterface", time): #will get called when hotkey is pressed #Q/A I can't specify the types of everything since its later in the file and they feed into each other - is them feeding in to each other bad design?
         effect_is_active = self.is_effect_active(effect)
         if effect_is_active:
             self._on_active_effect_triggered(effect, interface)
         else:
             self._on_inactive_effect_triggered(effect, interface)
-        #may have to ask user for input - i guess we should pass in engine for that right? thats kosher right?
+
+        #effect.trigger()
+        
         pass
             
     def _on_inactive_effect_triggered(self, effect, interface:"EngineInterface"):
@@ -101,7 +121,6 @@ class ToggleEffectsProccessing(ProccessingObj):
         #write to file
         pass
 
-    #todo idea: maybe needs in-between thing for converting events into display requests?
     
     def get_toggled_effects(self):
         return self.active_effects
@@ -137,30 +156,23 @@ class ToggleEffectsProccessing(ProccessingObj):
 from lookup import Lookup
 class Engine():
     proccesses_data : dict
-    hotkey_effects_lookup : Lookup  #a lookup is just a dict wrapper idk why
+    hotkey_command_lookup : Lookup  #a lookup is just a dict wrapper idk why
     type_proccessing_objs : dict #I need consistency ik sorry ig cause this is mutable?
 
     def __init__(self) -> None:
         self.proccesses_data = dict()
-        self.hotkey_effects_lookup = Lookup()
+        self.hotkey_command_lookup = Lookup()
         self.type_proccessing_objs = dict()
 
         self.display = Display()
         self.writer : Writer = None #needs to be initialized w filename (todo make cleaner)
+        self.timer: Timer = Timer()
+        
         self.interface = EngineInterface(self)
 
-        #self.display_interface = DisplayInterfaceConcept()
-        
-        self.main_timer = None
-
-    def get_display_obj(self) -> "Display":
-        return self.display
-    def get_writer_obj(self) -> "Writer":
-        return self.writer
-
-    def _register_hotkeys_and_effects(self):
+    def _register_hotkey_command_lookups(self):
         #control
-        self.hotkey_effects_lookup.register("ctrl+shift+\\", EffectData("start_or_end", "control")) #have to use this if u want start & end to be same hotkey
+        self.hotkey_command_lookup.register("ctrl+shift+\\", Command("start_or_end", "control")) #have to use this if u want start & end to be same hotkey
         #self.hotkey_effects_lookup.register("ctrl+shift+\\", EffectData("start", "control"))
         #self.hotkey_effects_lookup.register("ctrl+shift+\\", EffectData("end", "control"))
         placeholder = "pause"
@@ -169,20 +181,27 @@ class Engine():
         placeholder = "Accept, Reject, Reject Last Accepted, timelapse last, etc"
 
         #toggle effects
-        self.hotkey_effects_lookup.register("alt+x", EffectData("flip", "toggle_effect"))
-        self.hotkey_effects_lookup.register("alt+z", EffectData("bw", "toggle_effect"))
+        self.hotkey_command_lookup.register("alt+x", Command("flip", "toggle_effect"))
+        self.hotkey_command_lookup.register("alt+z", Command("bw", "toggle_effect"))
 
         #more effects & possibly proccessing objects will be registered by plugins + custom hotkeys will be implemented somehow
         #possibly should allow duplicate of ProccessingObjects?
     
     def _register_proccessing_objects(self):
         self.type_proccessing_objs["control"] = ControlProccessing
-        self.type_proccessing_objs["toggle_effect"] = ToggleEffectsProccessing()
+        self.type_proccessing_objs["toggle_effect"] = ToggleEffectsProccessing_old()
         self.type_proccessing_objs["cut_action"] = None
-
+  
+    def get_display_obj(self) -> "Display":
+        return self.display
+    def get_writer_obj(self) -> "Writer":
+        return self.writer
+    def get_timer(self):
+        return self.timer
+    
     def start_record_mode(self): #main
         #register hotkeys & effect proccesses
-        self._register_hotkeys_and_effects()
+        self._register_hotkey_command_lookups()
         self._register_proccessing_objects()
 
         #get output file name (probably from user) / initialize writer
@@ -191,21 +210,24 @@ class Engine():
 
 
         #add hotkey listeners with keyboard module
-        for hotkey in self.hotkey_effects_lookup.get_keys():
+        for hotkey in self.hotkey_command_lookup.get_keys():
             keyboard.add_hotkey(hotkey, self.on_hotkey_press, args=[hotkey])
         
         #wait for user to indicate start
         "tbd"
 
+        #start timer
+        self.timer.start_timer()
         #start display/ui
+        x = self.type_proccessing_objs["toggle_effect"]
+        print(f"hello!!! {x}")
         self.display.run_updating_display(self.type_proccessing_objs["toggle_effect"])
-        keyboard.wait()
         pass
 
     def on_hotkey_press(self, hotkey):
-        effect = self.hotkey_effects_lookup.lookup(hotkey)
+        effect = self.hotkey_command_lookup.lookup(hotkey)
         proccessing_obj : object = self.type_proccessing_objs[effect.type]  #eventually put abstract method instead of :object
-        proccessing_obj.trigger(effect, self.interface)
+        proccessing_obj.trigger(effect, self.interface, self.timer.get_current_time_truncated())
         #idea: could later abstract input so i can have hotkeys + streamdeck/touchportal/etc + hand gesture ai detection + etc
 
     def end_record_mode(self):
@@ -224,7 +246,9 @@ class EngineInterface(): #still workshopping names - actually that applies to ma
         self.engine = engine
         self.display = engine.get_display_obj()
         self.writer = engine.get_writer_obj()
+        self.timer = engine.get_timer()
     
+
     def print_to_display(self, to_print, info=None):
         self.display.print(to_print, info)
     
@@ -237,6 +261,11 @@ class EngineInterface(): #still workshopping names - actually that applies to ma
     
     def write_effect_to_file_1_str(self, to_write:str):
         self.writer.write_effect_to_file_1_str(to_write)
+
+
+    def get_current_time(self): #maybe pass in time seperately
+        return None #TBD
+        self.timer.get_time()
     
     #ask for user input
 
@@ -249,10 +278,10 @@ class Display:
         pass
     
 
-    def _get_toggled_effects(self, toggle_effects_proccessing): #may find a better design pattern for this
-        toggle_effects_proccessing.get_toggled_effects()
+    def _get_toggled_effects(self, toggle_effects_proccessing:"ToggleEffectsProccessing_old"): #may find a better design pattern for this
+        return toggle_effects_proccessing.get_toggled_effects()
 
-    def run_updating_display(self, toggle_effects_proccessing:ToggleEffectsProccessing):
+    def run_updating_display(self, toggle_effects_proccessing:ToggleEffectsProccessing_old):
         
         self.updating_display_is_ended = False
         #updating display
@@ -305,6 +334,7 @@ class Writer:
     
     def write_effect_to_file_1_str(self, to_write:str):
         print(to_write)
+
 
 
 
