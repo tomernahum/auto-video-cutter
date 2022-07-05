@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from graphlib import TopologicalSorter
+from typing import TYPE_CHECKING, Callable, OrderedDict
+from unicodedata import name
 
 from proccessing_abstract import ProccessingObj, Command
 
@@ -9,95 +11,102 @@ if TYPE_CHECKING:
 
 
 
-class ToggleCommand(Command, ABC): 
-    type = "toggle_effect"
-    
-    #@property
-    #def type(self)
-    #    return "toggle_effect"
-    
-    @abstractproperty
-    def name(self):
-        return "toggle command base"
 
-    def __init__(self) -> None:
-        self.name = "Base class toggle command"
+
+class ToggleCommand(Command): #this structure could  be generalized to other types of commands 
+    type = "toggle_effect"  #type checking error here cause it doesn't say return. this is cleaner though!
+    
+    def __init__(self, effect_name, params_list:OrderedDict):
+        self.effect_name = effect_name
+        self.params_list = params_list   #
+    
+    #example params list
+    params_list_ex = OrderedDict({
+        "param_a" : "55",
+        "param_b" : "[[REQUEST ON START]]",
+        "param_c" : "[[REQUEST ON END]]"
+    })
+
+    REQUEST_ON_START_CODE = "[[REQUEST ON START]]"
+    REQUEST_ON_END_CODE = "[[REQUEST ON END]]"
 
     def get_effect_name(self):
-        return self.name
-
-    def wants_input_on_start(self):
-        return False
-
-
-
-class ZoomEffectCommand(ToggleCommand): #example toggle command
-    name = "zoom"
-    parameters = None
-
-    start_parameters_requests = None
-    end_parameters_requests = None
+        return self.effect_name
     
-    default_parameter_values = None
+    def get_params_list(self):
+        return self.params_list
+
+    def get_params_requested_on_start(self):
+        return self._get_params_of_type(self.REQUEST_ON_START_CODE)
+    
+    def get_params_requested_on_end(self):
+        return self._get_params_of_type(self.REQUEST_ON_END_CODE)
 
 
-    def __init__(self) -> None:
-        pass
-
-#Could make toggle command not abstract but
-#just having properties that are created on init
-#may still make cutaction commands/etc abstract tho
-
-
-if True:
-    zoom_effect = ZoomEffectCommand()
-    x = isinstance(zoom_effect, ToggleCommand)
-    print(zoom_effect.get_effect_name())
+    def _get_params_of_type(self, type_code):
+        output = []
+        for key, value in self.params_list.items():
+            if value == type_code:
+                output.append((key, value))
+        return output
+            
 
 
+#example toggle command/how the system would work (draft):
+if False:
+    params_list = OrderedDict({
+        "zoom multiplier" : "REQUEST ON START",
+        "zoom x" : "middle",
+        "zoom y" : "middle",
+        "animation" : "true"
+    })
+    zoom_effect_command = ToggleCommand("defaults.zoom", params_list)
+    params_list["animation"] = "false"
+    zoom_effect_command_un_animated = ToggleCommand("defaults.zoom", params_list)
+
+    hotkey_lookup.register("alt+z", zoom_effect_command_un_animated)
+    hotkey_lookup.register("alt+shift+z", zoom_effect_command)
+
+#-----------------
 
 
-#----------------
+class MutableToggleCommand(ToggleCommand):
+    def __init__(self, toggle_command:ToggleCommand):
+        self.effect_name = toggle_command.effect_name
+        self.params_list = toggle_command.params_list
+    
+    def request_params_start(self, request_function:Callable[[list], OrderedDict]):
+        params_requested = self.get_params_requested_on_start()
+        for result_key, result_value in request_function(params_requested):
+            self.params_list[result_key] = result_value
 
-class Effect():
-    #def __init__(self, command:"ToggleCommand") -> None:
-        
 
-    def __init__(self, name, start_time, parameters) -> None:
-        self.name = name
+
+class ToggleEffect():
+    def __init__(self, command, start_time) -> None:
+        self.command = command
         self.start_time = start_time
-        self.end_time = None #yet
-
-        self.parameters = parameters
-
-    def get_running_time(self, current_time):
-        #maybe add state check of if its ended probably not though
-        return current_time - self.start_time
+        
 
 
 class ToggleEffectsProccessing(ProccessingObj):
+    command_type = "toggle_effect"
 
     def __init__(self):
-        self.active_effects = []
-        self.command_type = "toggle_effect"
+        self.active_effects:list = []
+        
 
     def trigger(self, command: "ToggleCommand", interface: "EngineInterface", current_time:float):
+        #command has effect_name & parameters
+        effect_info = MutableToggleCommand(command)
+        effect_info.request_params_start(lambda x :interface.ask_for_input_parameters(x))  #lambdad in case ask_for_input_parameters ever wants more than 1 input
         
-        effect_is_active = self._is_effect_active_from_command(command)
         
-        if effect_is_active:
-            effect = self.deactivate_effect_from_command(command)
-            self.on_effect_deactivation(effect)
+        effect = ToggleEffect(command, current_time)
         
-        else: 
-            effect = self.build_effect_object(command, interface, current_time)
-            self.activate_effect(effect)
-            #display that it's activated?
-
-
         
-
-        #
+        
+        pass
         
 
     def finish_up(self, interface: "EngineInterface"):
@@ -106,43 +115,8 @@ class ToggleEffectsProccessing(ProccessingObj):
     def get_running_display_info(self, current_time:float):
         pass
 
-    
-    active_effects:list
-    
-    def _is_effect_active_from_command(self, command):
-        for i in self.active_effects:
-            if i.get_name() == command.get_effect_name():
-                return True
-        return False
 
-    def deactivate_effect_from_command(self, command) -> Effect:
-        pass #TBD
-
-    def activate_effect(self, effect:Effect):
-        self.active_effects.append(effect)
-    
-        
-
-
-    def build_effect_object(self, command, interface, current_time) -> Effect:
-        parameters = get_effect_parameters_start(command, interface) #incl potentially asking for input
-        effect = Effect(
-            name= command.get_effect_name(),
-            start_time= current_time,
-            parameters= parameters
-        )
-        return effect
-    
-    def on_effect_deactivation(self, effect:Effect):
-        #ask for any possible closing inputs
-        #write to file
-        #display that it's closed?
-        pass #TBD
-
-def get_effect_parameters_start(command, interface):
-    if command.wants_input_on_start():
-        #ask for the input
-    #idk
+    def _set_params_for_input(self, command, interface):
 
 
 
@@ -153,7 +127,9 @@ def get_effect_parameters_start(command, interface):
 
 
 
-    """
+
+
+"""
     parameters requested:
     - parameter name:  zoom amount   ,  parameter value: input request    ,  input message:  "pls input zoom amount", input type: on start
     - parameter name:  zoom x   ,  parameter value: center    ,  input message:  None
@@ -161,7 +137,7 @@ def get_effect_parameters_start(command, interface):
     
    
     
-    """
+"""
     #test
 
 

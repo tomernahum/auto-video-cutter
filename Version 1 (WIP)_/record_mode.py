@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
-from typing import List
+from typing import List, OrderedDict
 import keyboard
 import time
 
-from timer import Timer
+from custom_timer import Timer
 
 
 @dataclass #idk if this is good or bad or what - prob will end up converting it to normal which would be a pain to do if i use getters and setters
@@ -168,7 +168,7 @@ class Engine():
         self.writer : Writer = None #needs to be initialized w filename (todo make cleaner)
         self.timer: Timer = Timer()
         
-        self.interface = EngineInterface(self)
+        self.interface = EngineInterface(self)  #todo: put interface in proccessing obj
 
     def _register_hotkey_command_lookups(self):
         #control
@@ -226,8 +226,8 @@ class Engine():
 
     def on_hotkey_press(self, hotkey):
         effect = self.hotkey_command_lookup.lookup(hotkey)
-        proccessing_obj : object = self.type_proccessing_objs[effect.type]  #eventually put abstract method instead of :object
-        proccessing_obj.trigger(effect, self.interface, self.timer.get_current_time_truncated())
+        proccessing_obj : "ProccessingObj" = self.type_proccessing_objs[effect.type]  #eventually put abstract method instead of :object
+        proccessing_obj.trigger(effect, self.interface, float(self.timer.get_current_time_truncated()))
         #idea: could later abstract input so i can have hotkeys + streamdeck/touchportal/etc + hand gesture ai detection + etc
 
     def end_record_mode(self):
@@ -240,13 +240,13 @@ class Engine():
     def pause_recording(self):
         pass
 
-#next: pass VV object into proccessing_objs instead of whats there + implement control proccessing obj (then implement abstract class)
+#todo: make interface know what proccessing obj called it - either put diff ones in each proccessing obj or pass in ones tht know
 class EngineInterface(): #still workshopping names - actually that applies to many of the names
     def __init__(self, engine:"Engine") -> None:
-        self.engine = engine
-        self.display = engine.get_display_obj()
-        self.writer = engine.get_writer_obj()
-        self.timer = engine.get_timer()
+        self.engine:"Engine" = engine
+        self.display:"Display" = engine.get_display_obj()
+        self.writer:"Writer" = engine.get_writer_obj()
+        self.timer:"Timer" = engine.get_timer()
     
 
     def print_to_display(self, to_print, info=None):
@@ -267,16 +267,19 @@ class EngineInterface(): #still workshopping names - actually that applies to ma
         return None #TBD
         self.timer.get_time()
     
-    #ask for user input
-
+    def ask_for_input_parameters(self, params_requested:List[str]) -> OrderedDict:
+        return self.display.ask_for_input_parameters(params_requested)
+    
     def end(self):
         self.engine.end_record_mode()
         
 
-class Display:
+class Display: #/ UI (might rename)
+    #implementation of the methods here is mostly temporary, eventually updating display will be continuous and eventually there will be a gui
+    
     def __init__(self) -> None:
         pass
-    
+
 
     def _get_toggled_effects(self, toggle_effects_proccessing:"ToggleEffectsProccessing_old"): #may find a better design pattern for this
         return toggle_effects_proccessing.get_toggled_effects()
@@ -303,6 +306,12 @@ class Display:
 
     def print(self, to_print, info=None):
         print(info)
+
+    def ask_for_input_parameters(self, params_requested:List[str]) -> OrderedDict:
+        output = OrderedDict({})
+        for param in params_requested:
+            output[param] = input(f"Enter: {param}:  ")
+        return output
     
     def stop_display(self):
         self.updating_display_is_ended = True
