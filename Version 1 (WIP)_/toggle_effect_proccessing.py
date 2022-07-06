@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod, abstractproperty
+from ast import Param
 from dataclasses import dataclass
 from graphlib import TopologicalSorter
 from typing import TYPE_CHECKING, Callable, OrderedDict
@@ -160,7 +161,6 @@ class ToggleEffectsProccessing(ProccessingObj):
         effect = ToggledEffect(current_time, command.get_effect_write_name(), command.get_params_list())
             
         #ask for params start
-        #print(f"PARMAMSM!!!: {effect.parameters}")
         effect.parameters.ask_ui_for_start_parameters_and_update_them(interface)
         
         #add to active effects list
@@ -205,9 +205,15 @@ class ToggleEffectsProccessing(ProccessingObj):
 
 
 def get_commands_to_register_temp():  #temp, eventually this will do an official registration function in the plugin
+    params_list_1 = ParamsList(OrderedDict({
+        "start-param-ex": "[[REQUEST ON START]]",
+        "pre-set-param-ex": "5",
+        "end-param-ex": "[[REQUEST ON END]]",
+    }))
+    
     output = [
         ("alt+x", ToggleCommand("flip", ParamsList())),  #it being a toggle command sets the proccessor/type automatically
-        ("alt+z", ToggleCommand("bw", ParamsList()))
+        ("alt+z", ToggleCommand("bw", params_list_1))
     ]
 
     return output
