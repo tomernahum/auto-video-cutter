@@ -56,7 +56,7 @@ class ControlProccessing(ProccessingObj):
 
         self.timer = None #will be timer
 
-    def trigger(self, command, interface:"EngineInterface", time): #called on
+    def trigger(self, command, interface:"EngineInterface", time:float): #called on
         if command == "start_or_end":      #could use case (it that does require python 3.10 which could be annoying maybe)
             if self.started == False: self.trigger_start()
             else: self.trigger_end()
@@ -76,7 +76,7 @@ class ControlProccessing(ProccessingObj):
     def trigger_end(self):
         pass
 
-    def finish_up(self, WIP): #called on
+    def finish_up(self, interface:"EngineInterface", time:float): #called on
         pass
 
 
@@ -181,15 +181,19 @@ class Engine():
         placeholder = "Accept, Reject, Reject Last Accepted, timelapse last, etc"
 
         #toggle effects
-        self.hotkey_command_lookup.register("alt+x", Command("flip", "toggle_effect"))
-        self.hotkey_command_lookup.register("alt+z", Command("bw", "toggle_effect"))
+        from toggle_effect_proccessing import get_commands_to_register_temp
+        for i in get_commands_to_register_temp():
+            self.hotkey_command_lookup.register(i[0], i[1])
+        
 
         #more effects & possibly proccessing objects will be registered by plugins + custom hotkeys will be implemented somehow
         #possibly should allow duplicate of ProccessingObjects?
     
     def _register_proccessing_objects(self):
+        from toggle_effect_proccessing import ToggleEffectsProccessing
+
         self.type_proccessing_objs["control"] = ControlProccessing
-        self.type_proccessing_objs["toggle_effect"] = ToggleEffectsProccessing_old()
+        self.type_proccessing_objs["toggle_effect"] = ToggleEffectsProccessing()
         self.type_proccessing_objs["cut_action"] = None
   
     def get_display_obj(self) -> "Display":
@@ -221,7 +225,7 @@ class Engine():
         #start display/ui
         x = self.type_proccessing_objs["toggle_effect"]
         print(f"hello!!! {x}")
-        self.display.run_updating_display(self.type_proccessing_objs["toggle_effect"])
+        self.display.run_updating_display(self.type_proccessing_objs["toggle_effect"], self.timer)
         pass
 
     def on_hotkey_press(self, hotkey):
@@ -245,7 +249,7 @@ class EngineInterface(): #still workshopping names - actually that applies to ma
     def __init__(self, engine:"Engine") -> None:
         self.engine:"Engine" = engine
         self.display:"Display" = engine.get_display_obj()
-        self.writer:"Writer" = engine.get_writer_obj()
+        self.writer:"Writer" = engine.get_writer_obj() #todo BUG bad stuff m8ty
         self.timer:"Timer" = engine.get_timer()
     
 
@@ -254,6 +258,11 @@ class EngineInterface(): #still workshopping names - actually that applies to ma
     
 
     def write_effect_to_file(self, effect_name, start_time, stop_time, parameters:list):
+        to_write_list = [effect_name, start_time, stop_time]
+        to_write_list.extend(parameters)
+        to_write = str(to_write_list)
+        print(f"wants_to_write: {to_write}")
+        return #todo BUG bad stuff m8ty wil do l8tr
         self.writer.write_effect_to_file(effect_name, start_time, stop_time, parameters)
         return
         to_write = [effect_name, start_time, stop_time].extend(parameters)
@@ -284,25 +293,25 @@ class Display: #/ UI (might rename)
     def _get_toggled_effects(self, toggle_effects_proccessing:"ToggleEffectsProccessing_old"): #may find a better design pattern for this
         return toggle_effects_proccessing.get_toggled_effects()
 
-    def run_updating_display(self, toggle_effects_proccessing:ToggleEffectsProccessing_old):
+    def run_updating_display(self, toggle_effects_proccessing:ToggleEffectsProccessing_old, timer:Timer):
         
         self.updating_display_is_ended = False
         #updating display
         while self.updating_display_is_ended == False:
             active_effects = self._get_toggled_effects(toggle_effects_proccessing)
-            self.update_updating_display(active_effects)
+            self.update_updating_display(active_effects, timer.get_current_time_truncated())
             time.sleep(1)
     
     
-    def update_updating_display(self, toggled_on_effects):
+    def update_updating_display(self, toggled_on_effects, current_time):
         #next: figure out interaction with ToggledEffects should it be done in display or toggleeffectproccessing (or somewhere else in between), if done in display where
         
         active_effects_string = ""
-        for effect in toggled_on_effects:
-            active_effects_string += f"{effect.effect.name}(N/A), "
+        for effect_name in toggled_on_effects:
+            active_effects_string += f"{effect_name}, "
 
 
-        print(f"active effects: {active_effects_string}")
+        print(f"{current_time} \tactive effects: {active_effects_string}")
 
     def print(self, to_print, info=None):
         print(info)
