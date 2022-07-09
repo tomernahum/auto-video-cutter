@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from record_mode import EngineInterface
 
+#Not Currently Used I think
+
 
 class Command(ABC): #WIP
     @abstractproperty

@@ -30,7 +30,10 @@ class CommandDraft(ABC): #WIP
 
 
 class ProccessingObj(ABC):
-    
+    @abstractproperty
+    def effect_category(self):
+        pass
+
     @abstractmethod
     def trigger(self, command:"Command", interface:"EngineInterface", time:"float"):
         pass
@@ -165,7 +168,7 @@ class Engine():
         self.type_proccessing_objs = dict()
 
         self.display = Display()
-        self.writer : Writer = None #needs to be initialized w filename (todo make cleaner)
+        self.writer : Writer = None # type: ignore #needs to be initialized w filename (todo make cleaner)
         self.timer: Timer = Timer()
         
         self.interface = EngineInterface(self)
@@ -361,7 +364,7 @@ class Writer:
 
 
 
-if True:
+if __name__ == "__main__":
     file = open("test.txt", 'w')
     print(type(file))
     

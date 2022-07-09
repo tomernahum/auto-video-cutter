@@ -1,0 +1,17 @@
+
+
+
+
+
+Plugins
+- 
+
+
+
+
+alt+z: 
+ZoomInCommand( 
+    Params={
+        zoom_amount = 5x     
+    }
+)

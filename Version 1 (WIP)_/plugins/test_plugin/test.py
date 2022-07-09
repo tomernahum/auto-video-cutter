@@ -1,5 +1,5 @@
 
+from proccessing_abstract import ProccessingObj
 
-
-def get_string():
-    return "---"
+class ExampleProccessingObj(ProccessingObj):
+    pass
