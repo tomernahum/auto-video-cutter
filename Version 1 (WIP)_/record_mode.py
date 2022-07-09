@@ -160,7 +160,7 @@ class Engine():
     type_proccessing_objs : dict #I need consistency ik sorry ig cause this is mutable?
 
     def __init__(self) -> None:
-        self.proccesses_data = dict()
+        self.proccesses_data = dict()  #I do not remember what this is for
         self.hotkey_command_lookup = Lookup()
         self.type_proccessing_objs = dict()
 
@@ -168,7 +168,7 @@ class Engine():
         self.writer : Writer = None #needs to be initialized w filename (todo make cleaner)
         self.timer: Timer = Timer()
         
-        self.interface = EngineInterface(self)  #todo: put interface in proccessing obj
+        self.interface = EngineInterface(self)
 
     def _register_hotkey_command_lookups(self):
         #control

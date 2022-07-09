@@ -1,0 +1,78 @@
+
+
+
+LOOKUPS NEEDED
+
+Hotkey : Command : Proccessing Object
+
+
+
+
+
+- Register Proccessing Object
+- Register Hotkey : Command : Proccessing Object
+
+
+
+----Command Maker-------
+
+Allows User to Register Hotkey:Command:PR Lookups
+
+Toggle:
+    - allows user to register 
+      hotkey : effect_name : parameters
+      lookups
+    
+    - Needs to get list of all available effects
+
+
+
+
+
+-----------------------------------
+
+
+ToggleEffectProccessing : {hotkey:command, hotkey:command},
+CutActionProccessing : {hotkey:command, hotkey:command},
+
+
+
+Available Toggle Effects : {Zoom, flip}
+
+Default Toggle Commands:
+    - Zoom    Params:{ASK, 50, 50}
+    - Zoom    Params:{ASK, ASK, ASK}
+
+Default CutAction Commands:
+    - Accept    Params:{}
+    - Reject    Params: {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    

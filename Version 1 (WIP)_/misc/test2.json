@@ -1,0 +1,36 @@
+{
+    "main" : [
+        {
+            "hotkey" : "alt+z",
+            "proccessor name" : "toggle_effect",
+            "command" : {
+                "proccessor name" : "toggle_effect",
+                "name": "zoom",
+                "params" : {
+                    "multiplier" : "ask user on start",
+                    "xpos": 50,
+                    "ypos": 50
+                }
+            }
+        },
+
+        {
+            "hotkey" : "...",
+            "command" : "..."
+        },
+
+        {
+            "hotkey" : "...",
+            "command" : "..."
+        }
+
+    ]
+    
+
+
+
+
+
+
+
+}

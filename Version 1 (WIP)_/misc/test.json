@@ -1,0 +1,84 @@
+
+{
+    
+    
+    
+    "Example File For Proccessing": 
+    {
+        "plugins": [],
+        
+        "effects": [
+            {
+                "name" : "zoom",
+                "start" : 55,
+                "end" : 59,
+                "params": [
+                    {
+                        "multiplier" : 2,
+                        "xpos": 50,
+                        "ypos": 50
+                    }
+                ]
+            },
+            
+            {
+                "name" : "test"
+            }
+        ]
+    },
+
+
+
+    "Example Hotkeys File":
+    {
+        [
+        {
+            "hotkey" : "alt+z",
+            "command": "..."
+        },
+        
+        "zoom2" : {
+            "params":
+                {
+                    "multiplier" : 2,
+                    "xpos": 100,
+                    "ypos": 0
+                },
+            "test": "..."
+        }
+    ]
+
+
+    },
+
+    "Example Command Lookup":
+    {
+        "zoom1" : {
+            "params":
+                {
+                    "multiplier" : 2,
+                    "xpos": 50,
+                    "ypos": 50
+                },
+            "test": "..."
+        },
+        
+        "zoom2" : {
+            "params":
+                {
+                    "multiplier" : 2,
+                    "xpos": 100,
+                    "ypos": 0
+                },
+            "test": "..."
+        }
+        
+
+    }
+
+
+
+
+
+
+}
