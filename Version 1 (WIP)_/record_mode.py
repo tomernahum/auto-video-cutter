@@ -27,6 +27,10 @@ class Command(ABC): #WIP
     def get_type(self) -> str:
         return self.type
 
+    @abstractmethod
+    def __init__(self) -> None:
+        super().__init__()
+
     #def run_command(self):
     #    pass
 
