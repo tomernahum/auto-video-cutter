@@ -1,0 +1,31 @@
+{
+    "Hotkey-Commands" : {
+        "Type/Proccessor": {
+            "hotkey" : ["Command Constructor Parameters"]
+        },
+        
+        
+        "ToggleCommand": {
+            "alt+z" : "Zoom",
+            "alt+x" : ["Name", {"Param Name":"v", "Param":"val"}]
+        },
+
+        "alt+z" : ["ToggleCommand", "Zoom", "not sure..."]
+    },
+
+    
+    "Hand_Gestures:Commands": {
+        
+        "ToggleEffects" : {
+            "this is here as an example" : "not implemented",
+            "":""
+        }
+    },
+
+    "t"
+
+
+
+
+
+}

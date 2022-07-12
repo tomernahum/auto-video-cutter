@@ -7,7 +7,7 @@ import time
 from custom_timer import Timer
 
 
-@dataclass #idk if this is good or bad or what - prob will end up converting it to normal which would be a pain to do if i use getters and setters
+"""@dataclass #idk if this is good or bad or what - prob will end up converting it to normal which would be a pain to do if i use getters and setters
 class Command(): #todo: make a protocol essentially
     name : str #will probably get rid of name once command inheretence stuff is set up
     type : str #should potentially look into enums - nah
@@ -15,17 +15,20 @@ class Command(): #todo: make a protocol essentially
     
     #will have more stuff like wants_input (maybe make that dynamic?) actually thats a whole thing I will figure out later 
     
-    """def __eq__(self, other): #WIP
-        return self.name == other.name or self.name == other"""
+    def __eq__(self, other): #WIP
+        return self.name == other.name or self.name == other """
 
 
-class CommandDraft(ABC): #WIP
+class Command(ABC): #WIP
     @abstractproperty
     def type(self) -> str: #aka which proccessor to send it to
         return "abstract_command"
 
     def get_type(self) -> str:
         return self.type
+
+    #def run_command(self):
+    #    pass
 
 
 
@@ -47,6 +50,13 @@ class ProccessingObj(ABC):
         return None
     
 
+
+class ControlCommand(Command):
+    type = "control"    #todo maybe rename type
+
+    def __init__(self, name) -> None:
+        self.type = "control"
+        self.name = name
     
 
 class ControlProccessing(ProccessingObj):
@@ -59,14 +69,14 @@ class ControlProccessing(ProccessingObj):
 
         self.timer = None #will be timer
 
-    def trigger(self, command, interface:"EngineInterface", time:float): #called on
-        if command == "start_or_end":      #could use case (it that does require python 3.10 which could be annoying maybe)
+    def trigger(self, command:"ControlCommand", interface:"EngineInterface", time:float): #called on
+        if command.name == "start_or_end":      #could use case (it that does require python 3.10 which could be annoying maybe)
             if self.started == False: self.trigger_start()
             else: self.trigger_end()
 
-        elif command == "start":
+        elif command.name == "start":
             self.trigger_start()
-        elif command == "end":
+        elif command.name == "end":
             self.trigger_end()
         
         else:
@@ -160,7 +170,7 @@ from lookup import Lookup
 class Engine():
     proccesses_data : dict
     hotkey_command_lookup : Lookup  #a lookup is just a dict wrapper idk why
-    type_proccessing_objs : dict #I need consistency ik sorry ig cause this is mutable?
+    type_proccessing_objs : dict[str, "ProccessingObj"] #I need consistency ik sorry ig cause this is mutable?
 
     def __init__(self) -> None:
         self.proccesses_data = dict()  #I do not remember what this is for
@@ -175,7 +185,7 @@ class Engine():
 
     def _register_hotkey_command_lookups(self):
         #control
-        self.hotkey_command_lookup.register("ctrl+shift+\\", Command("start_or_end", "control")) #have to use this if u want start & end to be same hotkey
+        self.hotkey_command_lookup.register("ctrl+shift+\\", ControlCommand("start_or_end")) #have to use this if u want start & end to be same hotkey
         #self.hotkey_effects_lookup.register("ctrl+shift+\\", EffectData("start", "control"))
         #self.hotkey_effects_lookup.register("ctrl+shift+\\", EffectData("end", "control"))
         placeholder = "pause"
@@ -195,7 +205,7 @@ class Engine():
     def _register_proccessing_objects(self):
         from toggle_effect_proccessing import ToggleEffectsProccessing
 
-        self.type_proccessing_objs["control"] = ControlProccessing
+        self.type_proccessing_objs["control"] = ControlProccessing()
         self.type_proccessing_objs["toggle_effect"] = ToggleEffectsProccessing()
         self.type_proccessing_objs["cut_action"] = None
   
@@ -231,11 +241,17 @@ class Engine():
         self.display.run_updating_display(self.type_proccessing_objs["toggle_effect"], self.timer)
         pass
 
-    def on_hotkey_press(self, hotkey):
+    def on_hotkey_press(self, hotkey): #todo
+        current_time = float(self.timer.get_current_time_truncated())
         effect = self.hotkey_command_lookup.lookup(hotkey)
-        proccessing_obj : "ProccessingObj" = self.type_proccessing_objs[effect.type]  #eventually put abstract method instead of :object
-        proccessing_obj.trigger(effect, self.interface, float(self.timer.get_current_time_truncated()))
+        proccessing_obj = self.type_proccessing_objs[effect.type]
+        proccessing_obj.trigger(effect, self.interface, current_time)
         #idea: could later abstract input so i can have hotkeys + streamdeck/touchportal/etc + hand gesture ai detection + etc
+
+    #brainstorm/draft
+    def on_input(self, command):
+        pass
+
 
     def end_record_mode(self):
         for proccessing_obj in self.type_proccessing_objs:
@@ -246,6 +262,14 @@ class Engine():
     
     def pause_recording(self):
         pass
+
+
+
+
+
+
+
+
 
 #todo: make interface know what proccessing obj called it - either put diff ones in each proccessing obj or pass in ones tht know
 class EngineInterface(): #still workshopping names - actually that applies to many of the names
@@ -288,6 +312,7 @@ class EngineInterface(): #still workshopping names - actually that applies to ma
 
 class Display: #/ UI (might rename)
     #implementation of the methods here is mostly temporary, eventually updating display will be continuous and eventually there will be a gui
+    #also I think methods could be better
     
     def __init__(self) -> None:
         pass
@@ -322,7 +347,8 @@ class Display: #/ UI (might rename)
     def ask_for_input_parameters(self, params_requested:List[str]) -> OrderedDict:
         output = OrderedDict({})
         for param in params_requested:
-            output[param] = input(f"Enter: {param}:  ")
+            #output[param] = input(f"Enter: {param}:  ")
+            output[param] = 50
         return output
     
     def stop_display(self):
