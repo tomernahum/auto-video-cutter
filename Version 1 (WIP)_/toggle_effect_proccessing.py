@@ -71,6 +71,7 @@ class ToggleCommand(Command): #this structure could  be generalized to other typ
     def __init__(self, effect_name:str, params_list:ParamsList):
         self.effect_write_name = effect_name 
         self.params_list = params_list   #
+        #self.params_list = ParamsList(params_list)
 
         self.effect_id = effect_name   #would be diff from write_name to have 2 of the same effect
         #self.action = "Toggle" #not going to implement other actions for now but they could be turn on or turn off and then it would be 2 of the same effect or do nothing #todo if u want
