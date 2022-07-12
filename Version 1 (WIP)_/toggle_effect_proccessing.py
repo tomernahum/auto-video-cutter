@@ -65,6 +65,8 @@ class ParamsList():   #todo: put in general file & import
         return output
 
 
+#I might replace commands w one class and then maybe something like this would take a normal command with standard inputs for convienience idk actually i will figure it out
+
 class ToggleCommand(Command): #this structure could  be generalized to other types of commands 
     type = "toggle_effect"  # type: ignore   #type checking error here cause it doesn't say return. this is cleaner though!
     

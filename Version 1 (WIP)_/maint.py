@@ -1,4 +1,6 @@
-from typing import Callable
+from collections import OrderedDict
+import json
+from typing import Callable, Dict
 import record_mode
 
 class EngineInterface():
@@ -75,25 +77,16 @@ class ProccessingManager:
         #proccessor.trigger(command, current_time, engine_interface)
 
 
+
+
+from ConfigFileParser import ConfigFileParser
+
+
+
+
 if True:
-    x = ProccessingManager()
-    x.hotkey_input_source.test()
-
-
-
-class InputConfig():
-    #reads the input config file to tell what commands correspond to what hotkey/other input method
-    
-    def __init__(self) -> None:
-        pass
-
-    def setup_config(self):
-        #get the configs from the file
-        
-        
-        pass
-
-
+    x = ConfigFileParser("input_config.json")
+    x.parse_config_file()
 
 
 class Engine():

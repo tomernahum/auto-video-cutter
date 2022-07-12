@@ -1,4 +1,13 @@
 {
+    
+    "Trigger-Type" : {
+        "Command Type/Proccessor": {
+            "trigger id" : ["Command Constructor Parameters"]
+        }
+    },
+    
+    
+    
     "Hotkey-Commands" : {
         "Type/Proccessor": {
             "hotkey" : ["Command Constructor Parameters"]
@@ -6,11 +15,13 @@
         
         
         "ToggleCommand": {
-            "alt+z" : "Zoom",
-            "alt+x" : ["Name", {"Param Name":"v", "Param":"val"}]
+            "alt+z" : ["Zoom", null],
+            "alt+x" : ["Name", {"Param1":"val", "Param2":"val"}]
         },
 
-        "alt+z" : ["ToggleCommand", "Zoom", "not sure..."]
+        "CutActionCommandWIP":{
+        }
+
     },
 
     
@@ -20,9 +31,7 @@
             "this is here as an example" : "not implemented",
             "":""
         }
-    },
-
-    "t"
+    }
 
 
 
