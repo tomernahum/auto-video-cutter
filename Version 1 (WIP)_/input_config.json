@@ -1,40 +1,20 @@
 {
-    
-    "Trigger-Type" : {
-        "Command Type/Proccessor": {
-            "trigger id" : ["Command Constructor Parameters"]
-        }
-    },
-    
-    
-    
-    "Hotkey-Commands" : {
-        "Type/Proccessor": {
-            "hotkey" : ["Command Constructor Parameters"]
-        },
-        
-        
-        "ToggleCommand": {
-            "alt+z" : ["Zoom", null],
-            "alt+x" : ["Name", {"Param1":"val", "Param2":"val"}]
+    "": [
+        {
+            "input": {
+                "type": "hotkey",
+                "id": "alt+z"
+            },
+            "proccessor": "Toggle",
+            "command": "Zoom",
+                "data": "params",
+                    "zoom_amount": "1.5",
+            "stfu" : "Toggle(Zoom({'zoom_amount':1.5})"
         },
 
-        "CutActionCommandWIP":{
+        {
+            "proccessor" : "Toggle",
+            "command" : "Zoom"
         }
-
-    },
-
-    
-    "Hand_Gestures:Commands": {
-        
-        "ToggleEffects" : {
-            "this is here as an example" : "not implemented",
-            "":""
-        }
-    }
-
-
-
-
-
+    ]
 }

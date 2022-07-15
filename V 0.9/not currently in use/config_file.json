@@ -1,0 +1,30 @@
+{
+    "input schemes " : ["Hotkey"],
+    "proccessors" : ["toggle_effects_proccessing"],
+    
+    "input schemes" : {
+        "Hotkey" : "location of import of this thing"
+    },
+    
+    "WIP": [
+        {
+            "input scheme" : "Hotkey",
+            "input scheme data": "alt+z",
+            
+            "proccessor" : "toggle_effects_proccessing",
+            "proccessor trigger data": {
+                "name" : "----",
+                "parameters" : "----"
+            }
+        }
+
+
+
+    ]
+
+
+
+
+
+
+}

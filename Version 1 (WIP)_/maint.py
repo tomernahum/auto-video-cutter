@@ -49,7 +49,42 @@ class ProccessorCommand():
     pass
 
 
+
+#-----------
+
+class HotkeyInputComponent:
+    
+
+    def __init__(self) -> None:
+        self.hotkey_command_lookup = {}
+        
+        self.trigger_command_func:
+        self.current_time_getter_func:
+        pass 
+    
+    
+    def add_hotkey(self, hotkey_name):
+        import keyboard
+        
+        hotkey = hotkey_name
+        keyboard.add_hotkey(hotkey, self.on_hotkey_pressed, args=[
+            self.trigger_command_func, self.hotkey_command_lookup, hotkey, self.current_time_getter_func])
+        pass
+    
+
+    def on_hotkey_pressed(self, key_name):
+        current_time = self.current_time_getter_func()
+        command = self.hotkey_command_lookup[key_name]
+        
+        self.trigger_command_func(command, current_time)
+        pass
+    
+    pass
+
+
 class ProccessingManager:
+    #Manages inputs & commands
+    
     def __init__(self) -> None:
         self.proccessors : dict[str, Proccessor]
         self.proccessor_commands = None
@@ -65,10 +100,11 @@ class ProccessingManager:
         keyboard.add_hotkey(hotkey, self.on_hotkey_pressed, args=[
             self.trigger_command, self.hotkey_command_lookup, hotkey, self.get_time_func])
     
+    
     @staticmethod
-    def on_hotkey_pressed(trigger_command, commands_lookup, key_name, get_time):
+    def on_hotkey_pressed(trigger_command, commands_lookup, key_name, get_time_func):
         command= commands_lookup[key_name]
-        trigger_command(command, get_time()) 
+        trigger_command(command, get_time_func()) 
 
 
     def trigger_command(self, command, current_time):
@@ -79,7 +115,7 @@ class ProccessingManager:
 
 
 
-from ConfigFileParser import ConfigFileParser
+from config_file_parser import ConfigFileParser
 
 
 
@@ -104,7 +140,7 @@ class Engine():
         self.plugins_manager = plugins_interface.PluginsInterface
 
     def start_record_mode(self):
-        proccessors = self.plugins_manager.get_proccessors
+        proccessors = self.plugins_manager.get_proccessors()
         self.input_config = None
         
         pass
