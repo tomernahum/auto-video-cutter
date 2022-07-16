@@ -33,6 +33,9 @@ class Timer:
 
     
     def get_current_time(self) -> float:
+        if self.start_time == None:
+            return None
+        
         if self.is_paused:
             current_time = self.time_before_pause
         else:
@@ -40,6 +43,9 @@ class Timer:
         return current_time
     
     def get_current_time_truncated(self, digits_after_decimal=2):
+        if self.start_time == None:
+            return None
+        
         return Timer._truncate_number_str(self.get_current_time(), digits_after_decimal)
     
     def get_current_time_formatted(self, formatter="default"):

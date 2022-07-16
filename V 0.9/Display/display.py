@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from Display.displays_inteface import DisplaysInterface
 
 
+#I will replace this with a model & display system
+
 class Display():
     def __init__(self) -> None:
         self.display_is_active = True
@@ -45,7 +47,8 @@ class Display():
     
     def update_updating_display(self, interface:DisplaysInterface):
         
-        to_print = self.get_print_data_for_updating_display(interface)
+        to_print = self.get_print_data_for_updating_display(interface)  
+        #Q/A: for it to be well-organized, should the display not be calling anything (it is calling the get_active_effects_for_display in each proccessor indirectly) but instead some controller push updates to the state/model of the display? - maybe.
         
         print("\r" + to_print, end="")
 
@@ -72,7 +75,7 @@ class Display():
         return to_print_active_effects
 
     def format_raw_time(self, raw_time):
-        return utils.time_formatter(raw_time)
+        return utils.format_time(raw_time)
 
 
 def replace_tabs_w_spaces_in_str(input_string, tabstop = 8): #taken from old file
@@ -88,3 +91,37 @@ def replace_tabs_w_spaces_in_str(input_string, tabstop = 8): #taken from old fil
         result += section
         result += " " * diff
     return result
+
+
+
+
+"""
+off topic: was just watching a vid about MVC. 
+So under that system we would want a controller to call start_updating_display 
+and pass in active effects (?), and also call display.print()
+
+ok rn we have proccessor's interface which has a reference to the display in it
+we also have display's interface which has the list of proccessors in it + the timer
+
+both these lists are passed in to the interfaces from the main file and created / 
+stored in my mind in the Engine class
+
+ok so for mvc:
+proccessor objects would call the main controller (instead of their own interface to the engine), 
+which would then call the display to update.
+
+
+Boils down to:
+rn the display calls the controllers for some things and the controllers call the display for other things
+these are done through their own interface class so its organized but maybe this is still high coupling?
+
+so we could have another middleman between the middlemen
+
+or we could have the display never call anything only get called to update by controller
+
+
+
+
+
+
+"""

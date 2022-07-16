@@ -18,7 +18,7 @@ def truncate_number(number, digits_after_decimal=2): #copied from other file
 
 
 
-def time_formatter(secs_time:float, shorten_seconds_above_1_min=False) -> str:
+def format_time(secs_time:float, shorten_seconds_above_1_min=False) -> str:
         secs_time = float(secs_time)
         minutes, seconds = divmod(secs_time, 60)
         hours, minutes = divmod(minutes, 60)
@@ -30,11 +30,12 @@ def time_formatter(secs_time:float, shorten_seconds_above_1_min=False) -> str:
         if minutes == 0 and hours == 0:
             return f"{seconds}s"
         
+
         if shorten_seconds_above_1_min is True:
             seconds = int(float(seconds))
         
         if hours == 0:
-            return f"{minutes}m:{seconds}s"
+            return f"{minutes}m {seconds}s"
         else:
-            return f"{hours}h:{minutes}:m{seconds}s"
+            return f"{hours}h {minutes}m {seconds}s"
 

@@ -10,7 +10,6 @@ class DisplaysInterface(): #Display's Interface  #todo better name perhaps
     def __init__(self, timer, proccessors:dict[str, "Proccessor"]):
         self.timer: Timer = timer
         self.proccessors = proccessors #command_type_proccessor_pairs
-        print(proccessors)
 
     def get_active_effects(self):
         current_time = self.timer.get_current_time() #should this be passed in?
