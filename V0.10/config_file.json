@@ -1,0 +1,30 @@
+{
+    "active proccessors" : [],
+    "trigger categories" : ["Hotkey"],
+
+    "triggers": [
+        {
+            "trigger category" : "Hotkey",
+            "trigger name" : "alt+z",
+            "command identifier" : {
+                "proccessor" : "Toggle",
+                "name" : "Zoom",
+                "..." : ""
+            }
+        },
+        {
+            "trigger category" : "Hotkey2",
+            "trigger name" : "alt+x",
+            "command identifier" : {
+                "proccessor" : "Toggle",
+                "name" : "Flip"
+            }
+        }
+
+    ],
+
+    "settings (just a draft for fun)": {
+        "Pause recording on input requested" : true,
+        "//Note": "What if the above was a proccessor that got triggered by certain events rather than hotkeys"
+    }
+}

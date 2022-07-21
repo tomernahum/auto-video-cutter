@@ -12,7 +12,7 @@ class Command():
     def get_type(self): return self.type
 
     def get_data(self, index):
-        return self.data[index]
+        return self.data[index] #todo error checkig ig
 
     def __repr__(self) -> str:
         return f"Command(type: {self.type}, data:{self.data}"
