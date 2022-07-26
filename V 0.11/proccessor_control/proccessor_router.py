@@ -20,9 +20,9 @@ class ProccessorInterface(Protocol):
 
 class ProccessorRouter:
     proccessor_interfaces : dict[str, ProccessorInterface] = {
-    }  #command_type : proccessor_interface
+    }  #command_type : proccessor_interface  #interface is just a proccessor in this context see above
 
-    def register_proccessor(self, command_type_it_handles:str, proccessor_interface:ProccessorInterface):
+    def register_proccessor(self, proccessor_interface:ProccessorInterface, command_type_it_handles:str):
         self.proccessor_interfaces[command_type_it_handles] = proccessor_interface
 
 
@@ -67,7 +67,7 @@ if __name__ == "__main__111":
     
     pr = ProccessorRouter()
 
-    pr.register_proccessor("command_type", proccessor1)
+    #pr.register_proccessor("command_type", proccessor1)
     
     cmd = commanddirty("x", "fake type")
     pr.recieve_command(cmd, "current_time")
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     proccessor_1 = proccessordirty("interface", "111")
     prout = ProccessorRouter()
 
-    prout.register_proccessor("command_type", proccessor_1)
+    prout.register_proccessor(proccessor_1, "command_type")
     cmd = commanddirty("x", "command_type")
     
     prout.recieve_command(cmd, "current_time")

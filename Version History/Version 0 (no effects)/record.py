@@ -150,7 +150,6 @@ class CutTimer():
         else: #reject or ended
             pass
 
-        
         self.timer.reset_timer() #bug: doesnt seem to be working
         
     def get_formatted_current_time(self):

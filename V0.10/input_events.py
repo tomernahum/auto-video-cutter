@@ -2,6 +2,13 @@ from abc import ABC, abstractmethod
 from typing import Callable, Type
 from config_data.input_config_data import InputConfigData, ConfigTuple
 
+#trigger data is really: trigger category name (eg hotkeys), trigger name (eg alt+x), and command info (eg {type:test})
+#trigger category name references an input object
+#trigger name references a register_trigger(trigger_name) to the input object
+#command info is passed along and could be anything
+
+#(input object lookup, trigger_id), command_data
+
 
 class InputEventsMonitor():
 
@@ -22,6 +29,8 @@ class InputEventsMonitor():
         for data_piece in trigger_data:
             self.input_objects[data_piece.trigger_category_name].register_hook(
                 data_piece.trigger_name, self.output_call, args=[data_piece.command_info])
+
+    
 
     def stop_monitoring(self):
         for o in self.input_objects.values():

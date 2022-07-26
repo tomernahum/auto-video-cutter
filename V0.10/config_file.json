@@ -1,5 +1,5 @@
 {
-    "active proccessors" : [],
+    "active proccessors" : ["plugin.testproccessor"],
     "trigger categories" : ["Hotkey"],
 
     "triggers": [
@@ -7,7 +7,7 @@
             "trigger category" : "Hotkey",
             "trigger name" : "alt+z",
             "command identifier" : {
-                "proccessor" : "Toggle",
+                "type" : "Toggle",
                 "name" : "Zoom",
                 "..." : ""
             }
@@ -16,7 +16,7 @@
             "trigger category" : "Hotkey2",
             "trigger name" : "alt+x",
             "command identifier" : {
-                "proccessor" : "Toggle",
+                "type" : "Toggle",
                 "name" : "Flip"
             }
         }

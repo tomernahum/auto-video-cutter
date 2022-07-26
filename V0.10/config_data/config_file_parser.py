@@ -21,10 +21,10 @@ class ConfigFileParser():  #this doesnt really need to be a class
 
         return config_data   
         
-    def parse_format_1(self, json):
+    def parse_format_1(self, json_data):
         config_data = InputConfigData()
         
-        triggers = json["triggers"]
+        triggers = json_data["triggers"]
         for line in triggers:
             config_data.add_trigger(
                 category_name= line["trigger category"],
