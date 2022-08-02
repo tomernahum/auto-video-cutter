@@ -1,4 +1,18 @@
 # auto-video-cutter
+Allows you to automatically cut out retakes in a video by pressing hotkeys while you are recording the video.
+
+(By Default): \
+Alt+Q to set a new "respawn checkpoint", Alt+W to go back to that checkpoint (cut out the video you recorded since that checkpoint). More commands as well (documentation coming soon)
+
+this is all a WIP right now
+
+
+
+
+
+# old
+
+# auto-video-cutter
 Edits videos based on timestamps you mark with hotkeys as you record the video. \
 Core mechanic is Accept Segment / Reject Segment (see below) \
 Does not trim silence as many other programs exist to do that, but can automatically run a silence trimming program after cuts are made. (*not yet implemented)
