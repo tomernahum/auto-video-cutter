@@ -257,12 +257,23 @@ class BlackWhite(EffectAction):
 
 
 
+
+
+
+
+
+
+
+
 def start_record_mode(): #main
     global main_timer
     global cut_timer
     global segments_done
     global output_file
+    global config
     
+    config = get_config_test()
+
     output_file_name = get_output_file_name()
     output_file = open(output_file_name, "w")
     
@@ -275,7 +286,8 @@ def start_record_mode(): #main
     segments_done = 0
     
     #wait for start key & start recording
-    start_hotkey = "ctrl+shift+\\"
+    #start_hotkey = "ctrl+shift+\\"
+    start_hotkey = config.start_hotkey
     print(f"press [{start_hotkey}] to start recording")
     keyboard.wait(start_hotkey)
     main_timer.start_timer()
@@ -284,7 +296,8 @@ def start_record_mode(): #main
 
     
     #add hotkeys
-    hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\"] #todo: hotkeys added & defined in different places, not convienient for adding
+    #hotkey_list = ["alt+q","alt+w", "alt+e", "alt+p", "ctrl+shift+\\"] #todo: hotkeys added & defined in different places, not convienient for adding
+    hotkey_list = config.get_list_of_hotkeys()
     for hotkey in hotkey_list:
         keyboard.add_hotkey(hotkey, on_hotkey_press, args=[hotkey])
     
@@ -362,14 +375,15 @@ def run_updating_display():
 
 def on_hotkey_press(hotkey):
     global main_timer
+    global config
 
     #pause hotkey check
-    if hotkey == "alt+p":
+    if hotkey == config.pause_hotkey:
         pause_or_unpause()
         return
     
     #end hotkey check
-    if hotkey == "ctrl+shift+\\":
+    if hotkey == config.end_hotkey:
         global ended
         ended = True
         return
@@ -379,10 +393,19 @@ def on_hotkey_press(hotkey):
         return 
 
 
-    current_time = main_timer.get_current_time_trunc()
+    current_time = main_timer.get_current_time_trunc() #todo in future i would use this i guess
     
     #run cut action
-    if hotkey == "alt+q":
+    cut_action_data_obj = config.lookup_cut_action_hotkey(hotkey)
+    
+    if isinstance(cut_action_data_obj, CutAction):
+        mark_cut_action(cut_action_data_obj, main_timer)
+
+    elif isinstance(cut_action_data_obj, EffectAction): # not in use
+        mark_effect_action(cut_action_data_obj, main_timer)
+    
+    
+    """if hotkey == "alt+q":
         mark_cut_action(Accept(), main_timer)
         return
     elif hotkey == "alt+w":
@@ -390,13 +413,16 @@ def on_hotkey_press(hotkey):
         return
     elif hotkey == "alt+e":
         mark_cut_action(RetakeAccepted(), main_timer)
-        return
+        return"""
     
+
+
+
     #effect
-    elif hotkey == "alt+1":
-        mark_effect_action(Flip(), main_timer)
-    elif hotkey == "alt+2":
-        mark_effect_action(BlackWhite(), main_timer)
+    #elif hotkey == "alt+1":
+    #    mark_effect_action(Flip(), main_timer)
+    #elif hotkey == "alt+2":
+    #    mark_effect_action(BlackWhite(), main_timer)
 
     #todo: make 1 place/list with hotkey:action_to_run or :effect configuration
     
@@ -559,6 +585,70 @@ class StringBuilder:
 def get_output_file_name():
     #return "1.txt" #for testing
     return input("enter the name of the file to write to (no extention): ") + ".txt"
+
+
+class Config:
+    #im not trying to make this good rn just functional as it is
+
+    #control hotkeys
+    pause_hotkey = "alt+p"
+    start_hotkey = "ctrl+shift+\\"
+    end_hotkey = "ctrl+shift+\\"
+    
+    #cutaction hotkeys
+    cut_action_hotkeys_to_data_obj = {  #actually not ideal format for changing
+        "alt+q" : Accept(),
+        "alt+w" : Reject(),
+        "alt+e" : RetakeAccepted(),
+    }#could do dict with: lambda timer: mark_cut_action(Reject(), timer), but I want this version to be somewhat simple since its this far along
+
+
+    def lookup_cut_action_hotkey(self, hotkey):
+        if hotkey in self.cut_action_hotkeys_to_data_obj:
+            return self.cut_action_hotkeys_to_data_obj[hotkey]
+        #elif hotkey in self.effect_action_hotkeys_to_data_obj:
+        raise ValueError()
+
+    def get_list_of_hotkeys(self):
+        list_of_hotkeys = []
+
+        list_of_hotkeys.append(self.pause_hotkey)
+        list_of_hotkeys.append(self.end_hotkey)
+        #list_of_hotkeys.append(self.start_hotkey)
+
+        for i, _ in self.cut_action_hotkeys_to_data_obj.items():
+            list_of_hotkeys.append(i)
+        #for i, _ in self.effect_action_hotkeys_to_data_obj.items():
+        #    list_of_hotkeys.append(i)
+        
+        return list_of_hotkeys
+    
+
+def get_config_test() -> Config:
+    system = "alternate"
+    if system == "default":
+        return Config()
+
+    elif system == "alternate":
+        config = Config()
+
+        config.start_hotkey = "alt+s"
+        config.end_hotkey = "alt+e"
+        
+        config.cut_action_hotkeys_to_data_obj = dict()
+        config.cut_action_hotkeys_to_data_obj["alt+1"] = Accept()
+        config.cut_action_hotkeys_to_data_obj["alt+2"] = Reject()
+        config.cut_action_hotkeys_to_data_obj["alt+3"] = RetakeAccepted()
+
+        return config
+
+    elif system == "from file":
+        pass
+
+def get_config():
+    pass
+
+
 
 
 if __name__ == "__main__":
