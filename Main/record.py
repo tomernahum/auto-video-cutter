@@ -587,7 +587,7 @@ def get_output_file_name():
     return input("enter the name of the file to write to (no extention): ") + ".txt"
 
 
-class Config:
+class Config:  #to be used as a dataclass and just modified raw by the config file parser
     #im not trying to make this good rn just functional as it is
 
     #control hotkeys
