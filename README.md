@@ -24,3 +24,8 @@ this is a WIP but should be ready to use. The code in record mode in main was wr
 
 No promises about continued development though
 
+# Dependencies
+pip install each of these. I will make a proper file at a later date.
+1) moviepy
+2) keyboard
+
