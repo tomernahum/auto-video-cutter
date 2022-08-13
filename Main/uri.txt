@@ -1,5 +1,0 @@
-Timestamps file for [autoeditor program] recorded on 2022-08-06 15:17:10.901289
-12.86	Accepted
-25.34	Rejected
-34.85	Ended   
-EOF. segments done: 1, projected final time: 12.8s

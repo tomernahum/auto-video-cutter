@@ -14,6 +14,9 @@ class Constants:
 
 class Segment:
     def __init__(self, t_start, t_end, parent_VFC, effects_list):  #Q/N, optimization: parent_VFC ideally would just be a pointer to main VFC, not a copy, I think this is what it already is? but I'm not sure. Should it be a class var?
+        t_start = float(t_start)
+        t_end = float(t_end)
+        
         self.raw_end = t_end
         self.raw_start = t_start
         self.VFC = parent_VFC.subclip(t_start, t_end)     #optimize: could move this to the get function so its not slowed down doing this 
@@ -143,7 +146,7 @@ def start_process_mode(): #main
     output = concatenate_videoclips(processed_VFCs_list)
     
     
-    output.write_videofile("CUT_"+video_file_name)
+    output.write_videofile("CUT_"+video_file_name+ ".mp4")
 
     main_VFC.close()
 

@@ -588,7 +588,7 @@ def get_output_file_name():
 
 
 class Config:  #to be used as a dataclass and just modified raw by the config file parser
-    #im not trying to make this good rn just functional as it is
+    #im not trying to make this good rn / extendable or whatever principles just functional as it is
 
     #control hotkeys
     pause_hotkey = "alt+p"

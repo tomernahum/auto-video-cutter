@@ -1,7 +1,7 @@
 # 2 modes: Record & Proccess (Possibly Settings mode too)
 
-from record import start_record_mode
-from process import start_process_mode
+#from record import start_record_mode
+#from process_redo import run_process_mode
 
 #todo: I think I should call it from system and add a main.py (I will look into it)
 #so I don't have to import both modes when I will only run one
@@ -14,10 +14,12 @@ while mode != "1" and mode != "2":
     
 #launch the correct mode
 if mode == "1":
+    from record import start_record_mode
     start_record_mode()
     pass
 elif mode == "2":
-    start_process_mode()
+    from process_redo import run_process_mode
+    run_process_mode()
     pass
 
 
