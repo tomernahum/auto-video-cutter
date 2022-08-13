@@ -1,226 +1,194 @@
-import time
+from dataclasses import dataclass
+from typing import List, Tuple
 from moviepy.editor import *
-from moviepy.video import fx
-
-
-class Constants: 
-    accept_ca_label = "Accepted"         #ca means cut action, which itself might be confusing for all i know, good thing about constants though is I can Rename Refactor them easily
-    reject_ca_label = "Rejected"
-    retake_accepted_ca_label = "Retake A."
-    end_ca_label = "Ended"
-    ca_set = {accept_ca_label, reject_ca_label, retake_accepted_ca_label, end_ca_label}
-    #not all string labels are constants as of now
 
 
 class Segment:
-    def __init__(self, t_start, t_end, parent_VFC, effects_list):  #Q/N, optimization: parent_VFC ideally would just be a pointer to main VFC, not a copy, I think this is what it already is? but I'm not sure. Should it be a class var?
-        t_start = float(t_start)
-        t_end = float(t_end)
-        
-        self.raw_end = t_end
-        self.raw_start = t_start
-        self.VFC = parent_VFC.subclip(t_start, t_end)     #optimize: could move this to the get function so its not slowed down doing this 
-                                                          #Q/N: Question: if I store parent vfc as a class variable will it copy it or store a reference to it
-        self.effects_list = effects_list  #effects will be their own objects
-
-    def __repr__(self) -> str:
-        result = ""
-        for effect in self.get_effects_list():
-            result += repr(effect)
-            result += "&"
-        return result
-
-    def get_effects_list(self):
-        return self.effects_list
-    def get_VFC(self):
-        return self.VFC 
-    
-    def add_effect(self, effect_name):
-        self.effects_list.append(Effect(effect_name))
-    
-    def remove_effect(self, effect_to_remove):      
-        for active_effect in self.get_effects_list():
-            if active_effect.get_effect_name() == effect_to_remove.get_effect_name():
-                self.effects_list.remove(active_effect)
-    
-    def is_cut(self):   
-        for effect in self.get_effects_list():
-            if effect.get_effect_name() == "Cut":
-                return True
-        return False
-
-    def apply_effect_to_own_VFC(self, effect_object): #apply effects on to VFC
-        output = effect_object.apply_effect_function(self.VFC)
-        self.VFC = output
-    
-    def apply_all_effects(self):    #Q/N: is this the best way of doing this?
-        #WIP: may have to add priorities or something
-        for effect_object in self.effects_list:
-            self.apply_effect_to_own_VFC(effect_object)
-        
-        return self.get_VFC()
-
-
-#Segment: VFC & List of Effects
-#Effect: Name and function
-#How to find function
-
-class Effect:
-    #so an effect is name & function, while a segment is vfc & list of effects
-    @staticmethod
-    def get_effects_function(name):
-        functions_dict = {
-            "Cut" : lambda VFC : VFC.subclip(0,0) ,
-            "Accepted" : lambda VFC : VFC , #returns itself (does nothing)
-
-            "Flip" : lambda VFC : VFC.fx(vfx.mirror_y),
-            "BlackWhite" : lambda VFC : VFC.fx(vfx.blackwhite),
-
-            "CenterZoom" : None,
-            "SpeedUp" : lambda VFC, data_list : vfx.speedx(VFC, factor=data_list[1]) ,
-            
-            #we can also point to other static functions if the function is longer or put all the functions in a seperate file
-            #then it could be setup so the user can input somewhere effectname, hotkey, and function (or name of moviepy function and it would be sorted automatically)
-        }
-        
-        return functions_dict[name]
-
-    def __init__(self, name, data=[]):
-        self.effect_name = name
-        self.effect_function = Effect.get_effects_function(name) #maybe needs some sort of data checking thing
-        self.effect_data_list = data
+    start_time : float
+    end_time :float
+    is_cut : bool
     
     def __repr__(self) -> str:
-        return self.get_effect_name()
+        if self.is_cut: x = "Cut"
+        else: x = "Uncut"
+        return f"Segment({self.start_time} - {self.end_time}: {x})"
 
-    def __eq__(self, __o: object) -> bool:
-        pass
-
-    def get_effect_name(self): return self.effect_name
+    def __init__(self, start_time, end_time):
+        self.start_time = start_time
+        self.end_time = end_time
+        self.is_cut = None
     
-    def get_effect_function(self): return self.effect_function
+    def mark_as_cut(self):
+        self.is_cut = True
+    def mark_as_not_cut(self):
+        self.is_cut = False
 
-    def get_effect_data(self): return self.effect_data_list
-
-    def apply_effect_function(self, VFC:VideoFileClip):
-        if self.get_effect_data() == []:
-            return self.get_effect_function()(VFC)
-        else:
-            return self.get_effect_function()(VFC, self.get_effect_data())
+    def is_cutt(self):
+        return self.is_cut
 
 
 
+def run_process_mode(): #main
+    #todo: either put in subfolder for the videos or make this a system wide command (idk how currently)
+
+    video_file_name, ts_file_name = get_file_names_from_user() #also checks for validity
+    output_file_name = get_output_file_name(video_file_name)
+
+    edit_video(video_file_name, ts_file_name, output_file_name)
+
+    #todo: option to run time cutter automatically after writing is finished
+
+
+    pass
+
+def edit_video(video_file_name, ts_file_name, output_file_name):
+    print("Parsing timestamps file...")
+    timestamps_data = parse_timestamps_file(ts_file_name)
+
+    print("Building segments...")
+    all_segments = get_list_of_segments(timestamps_data)
+    uncut_segments = get_list_of_uncut_segments(all_segments)
+    print(uncut_segments)
+
+
+    print("Building VideoFileClips...")
+    #concrete things below here :0 (im tired)
+    main_vfc = VideoFileClip(video_file_name)
+    vfc_list = get_vfc_list(uncut_segments, main_vfc)
+    final_vfc: VideoFileClip = concatenate_videoclips(vfc_list)
+
+    print("Writing Output File")
+    final_vfc.write_videofile(output_file_name)
 
 
 
+def get_output_file_name(video_file_name:str):
+    #todo: reconsider tis + add more questions at the start
+    return "CUT_"+ video_file_name + ".mp4"
 
 
 
+def get_vfc_list(segments_list:List[Segment], main_vfc:VideoFileClip):
+    vfc_list = []
+    for s in segments_list:
+        vfc_list.append(main_vfc.subclip(s.start_time, s.end_time))
+    return vfc_list
 
 
-
-def start_process_mode(): #main
-    #open timestamps file reader & Master Video File Clip
-    video_file_name, timestamps_file_name = get_file_names_from_user()
-    main_VFC = VideoFileClip(video_file_name)
-    timestamps_file = open(timestamps_file_name, 'r')
-    
-    #convert timestamps into segments (each segment can have multiple effects)
-    print("building segments...")
-    segments_list = get_segments_list(timestamps_file, main_VFC)
-    
-    
-
-    #apply the effects to the video file clips in the segment objects
-    print("applying segments...")
-    processed_VFCs_list = []
-    for segment in segments_list:
-        segment.apply_all_effects()
-        vfc = segment.get_VFC()   
-        
-        processed_VFCs_list.append(vfc)
-        #todo maybe delete the segment, or seperate the proccessing and the extracting
-    
-    #todo could make it so that it builds the segments & applies effects to them in chunks of effects with overlapping segments not all at once so that if the file is super long it doesn't take up infinite memory
-
-    output = concatenate_videoclips(processed_VFCs_list)
-    
-    
-    output.write_videofile("CUT_"+video_file_name+ ".mp4")
-
-    main_VFC.close()
-
-
-
-def get_file_names_from_user():  
-    #return "test_vid.mkv", "realtest.txt"
-    vid_file_name = input("Enter the name of the video file to process: ")
-    timestamps_file_name = input("Enter the name of the timestamps file with which to process: ")
-    return vid_file_name, timestamps_file_name
-
-
-def get_segments_list(timestamps_file, main_VFC):
-    segments_list = []
-    
-    segments_list = get_cut_and_keep_segments_list(timestamps_file, main_VFC)
-    #get start_stop action effects & mesh all the effects
-    
-    print (segments_list)
-
-    
-
-    return segments_list
-    
-
-def get_cut_and_keep_segments_list(timestamps_file, main_VFC):
+def get_list_of_segments(timestamps_data: List[Tuple[float, str]]):
     segments_list = []
 
-    #make a .split tuples list of just cut action timestamps (accept/reject/retake/maybe end)
-    cut_action_timestamps_list = []  #[0] is timestamp [1] is label
-    for line in timestamps_file.readlines()[1:-1]:  #last bit makes it skip 1st & last lines
-        split_line = line.strip().split("\t")
-        if split_line[1] in Constants.ca_set:
-            cut_action_timestamps_list.append(split_line)
-    
-
-    #put cut & none segments in segments_list
     last_timestamp = 0
-    for timestamp, label in cut_action_timestamps_list: 
-        #print(index, timestamp, label)
-        segment = Segment(last_timestamp, timestamp, main_VFC, [])
+    for timestamp, action in timestamps_data:
+        segment = Segment(last_timestamp, timestamp)
         
-        if label == Constants.reject_ca_label or label == Constants.end_ca_label:
-            segment.add_effect("Cut")
-        elif label == Constants.accept_ca_label:
-            segment.add_effect("Accepted")   #this effect doesn't do anything now
+        if action == "Reject" or action == "End":
+            segment.mark_as_cut()
+        elif action == "Accept":
+            segment.mark_as_not_cut()
         
-        elif label == Constants.retake_accepted_ca_label:
-            segment.add_effect("Cut")  #cut out the segment leading up to retake a
-            for segment2 in reversed(segments_list): #find the last accepted segment and change it to cut
-                if not segment2.is_cut():
-                    segment2.remove_effect("Accepted")     #could be hashtagged out if i get rid of accepted effect
-                    segment2.add_effect("Cut")
+        elif action == "Retake A":
+            segment.mark_as_cut()
+            #mark last uncut segment as cut
+            for previous_segment in reversed(segments_list):
+                if not previous_segment.is_cut:
+                    previous_segment.mark_as_cut()
                     break
-        
+
         segments_list.append(segment)
         last_timestamp = timestamp
 
-    
-    #for segment in segments_list:
-    #    x = ""
-    #    if segment.is_cut(): x = "cut"
-    #    else: x = "kept"
-    #    print (segment.raw_start,"-",segment.raw_end,":",x)
-
     return segments_list
+
+def get_list_of_uncut_segments(list_of_segments:List[Segment]):
+    output = []
+    for segment in list_of_segments:
+        if not segment.is_cut:
+            output.append(segment)
+    return output #todo list comprehension cause why not ig
+
+
+
+def parse_timestamps_file(ts_file_name):
+    with open(ts_file_name) as file:
+        timestamps_file_data = file.readlines()
+    timestamps_file_data = parse_ts_file_data_into_seconds_action_format(timestamps_file_data)
+    return timestamps_file_data
+
+def parse_ts_file_data_into_seconds_action_format(file_lines):
+    #todo if we changed the file to be in minutes time we'd have to deconvert it here
+    
+    output = []
+    file_lines = file_lines[1:-1]  #todo: dont do this if there is no header or footer
+    
+    for line in file_lines:
+        new_line = line.strip().split("\t")
+        new_line[0] = float(new_line[0])
+        output.append(new_line)
+    
+    return output
+
+
+
+
+
+def get_file_names_from_user() -> Tuple[str, str]:  
+    #establish functions  #Q: Am I overcomplicating this? Also: is this the best way to organize the place of these functions
+    def ask_for_input(input_prompt:str, validity_checker_function):
+        while True:
+            file_name = input(input_prompt)
+            
+            is_valid, error_message = validity_checker_function(file_name)
+            if is_valid:break
+            else:
+                print(error_message)
+        return file_name
+
+    def vid_file_is_valid(vid_file_name) -> Tuple[bool, str]: #todo doesnt seem to work
+        try:
+            x = VideoFileClip(vid_file_name)
+        
+        except IOError:
+            return False, "file not found"
+
+        else:
+            return True, "No Error"
+
+    def ts_file_is_valid(vid_file_name) -> Tuple[bool, str]:
+        try:
+            file = open(vid_file_name, 'r')
+            
+
+        except IOError:
+            return False, "file not found"
+        
+        else:
+            
+            if file.readline()[0:15] != "Timestamps file":
+                return (False, "doesn't appear to be a timestamps file")
+            
+            file.close()
+            return True, "No Error"
+
+    if False:
+        return "part0and1.mkv", "test.txt"
+
+
+    #ask user for file names until it is valid  #Q: am i overcomplicating this?
+    video_file_name = ask_for_input("Enter the name of the video file to process: ", vid_file_is_valid)
+    ts_file_name = ask_for_input("Enter the name of the timestamps file with which to process: ", ts_file_is_valid)
+    return video_file_name, ts_file_name
+
+
+
+    
     
     
 
-    
+
+
+
 
 
 if __name__ == "__main__":
-    start_process_mode()
-
-#possible bug: seems to wait 2 frames after the reject or retake accepted
-# command shows up in the recording of the terminal after pressing accepted before cutting
+    run_process_mode()

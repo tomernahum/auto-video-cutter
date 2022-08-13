@@ -625,7 +625,8 @@ class Config:  #to be used as a dataclass and just modified raw by the config fi
     
 
 def get_config_test() -> Config:
-    system = "alternate"
+    system = "default"
+    
     if system == "default":
         return Config()
 
