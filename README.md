@@ -21,10 +21,11 @@ currently you have to change the config in the code I will add a config file whe
 
 
 this is a WIP but should be ready to use. The code in record mode in main was written a long time ago and doesn't seem very extendable so I might rewrite it. In the future it would be cool to integrate hand gesture tracking for commands as well as other things.
+Also I will clean up the release with stuff such as a dependencies file & a license & whatever else at a later date
 
 No promises about continued development though
 
-# Dependencies
+## Dependencies
 pip install each of these. I will make a proper file at a later date.
 1) moviepy
 2) keyboard
