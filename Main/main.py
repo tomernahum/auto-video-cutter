@@ -14,11 +14,11 @@ while mode != "1" and mode != "2":
     
 #launch the correct mode
 if mode == "1":
-    from record import start_record_mode
+    from record imposrt start_record_mode
     start_record_mode()
     pass
 elif mode == "2":
-    from process_redo import run_process_mode
+    from process import run_process_mode
     run_process_mode()
     pass
 
