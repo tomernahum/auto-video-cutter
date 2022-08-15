@@ -2,10 +2,10 @@
 Allows you to automatically cut out retakes in a video by pressing hotkeys while you are recording the video.
 
 ## Record mode commands
-Alt+Q to set a new "respawn checkpoint", Alt+W to go back to that checkpoint (cut out the video you recorded since that checkpoint). Alt+E to go back 2 checkpoints (such as if you set a checkpoint accidentall)
+Alt+Q to set a new "respawn checkpoint", Alt+W to go back to that checkpoint (cut out the video you recorded since that checkpoint). Alt+E to go back 2 checkpoints (such as if you set a checkpoint accidentall) \
 AKA Alt+Q to "Accept" the previous segment, Alt+W to "Reject" the previous segment, Alt+E to "Reject the last accepted segment"
 
-# Usage
+## Usage
 1) Install this program as a folder
 2) Set the "start recording", "pause recording" and "end recording" hotkeys in your recording software and this program to be the same
 3) go to the main folder in this program in a command terminal and run python main.py, then input 1 for record mode
@@ -19,8 +19,15 @@ AKA Alt+Q to "Accept" the previous segment, Alt+W to "Reject" the previous segme
 
 currently you have to change the config in the code I will add a config file when I get around to it it shouldn't take very long to do
 
+## Dependencies
+pip install each of these. I will make a proper file at a later date.
+1) moviepy
+2) keyboard
 
+## Notes
 this is a WIP but should be ready to use. The code in record mode in main was written a long time ago and doesn't seem very extendable so I might rewrite it. In the future it would be cool to integrate hand gesture tracking for commands as well as other things.
+Also I will clean up the release with stuff such as a dependencies file & a license & whatever else at a later date
 
 No promises about continued development though
+
 
