@@ -265,7 +265,7 @@ class BlackWhite(EffectAction):
 
 
 
-def start_record_mode(): #main
+def start_record_mode(output_file_name): #main
     global main_timer
     global cut_timer
     global segments_done
@@ -274,7 +274,6 @@ def start_record_mode(): #main
     
     config = get_config_test()
 
-    output_file_name = get_output_file_name()
     output_file = open(output_file_name, "w")
     
     file_header = "Timestamps file for [autoeditor program] recorded on " + str(datetime.datetime.now())
@@ -582,9 +581,9 @@ class StringBuilder:
             self.string += str(to_add)
 
 
-def get_output_file_name():
-    #return "1.txt" #for testing
-    return input("enter the name of the file to write to (no extention): ") + ".txt"
+#def get_output_file_name():
+#    #return "1.txt" #for testing
+#    return input("enter the name of the file to write to (no extention): ") + ".txt"
 
 
 class Config:  #to be used as a dataclass and just modified raw by the config file parser
@@ -653,7 +652,8 @@ def get_config():
 
 
 if __name__ == "__main__":
-    start_record_mode()
+    import sys
+    start_record_mode(sys.argv[1])
 
 
 

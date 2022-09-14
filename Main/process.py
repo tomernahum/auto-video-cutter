@@ -28,18 +28,15 @@ class Segment:
 
 
 
-def run_process_mode(): #main
-    #todo: either put in subfolder for the videos or make this a system wide command (idk how currently)
+def run_process_mode(video_file_name, ts_file_name, output_file_name): #main
 
-    video_file_name, ts_file_name = get_file_names_from_user() #also checks for validity
-    output_file_name = get_output_file_name(video_file_name)
+    #todo: maybe check if files are valid here?
 
     edit_video(video_file_name, ts_file_name, output_file_name)
 
-    #todo: option to run time cutter automatically after writing is finished
+    #alternate inputs (idk whats best): VFC, ts_file readlines data
 
 
-    pass
 
 def edit_video(video_file_name, ts_file_name, output_file_name):
     print("Parsing timestamps file...")
@@ -62,9 +59,7 @@ def edit_video(video_file_name, ts_file_name, output_file_name):
 
 
 
-def get_output_file_name(video_file_name:str):
-    #todo: reconsider tis + add more questions at the start
-    return "CUT_"+ video_file_name + ".mp4"
+
 
 
 
@@ -132,52 +127,7 @@ def parse_ts_file_data_into_seconds_action_format(file_lines):
 
 
 
-def get_file_names_from_user() -> Tuple[str, str]:  
-    #establish functions  #Q: Am I overcomplicating this? Also: is this the best way to organize the place of these functions
-    def ask_for_input(input_prompt:str, validity_checker_function):
-        while True:
-            file_name = input(input_prompt)
-            
-            is_valid, error_message = validity_checker_function(file_name)
-            if is_valid:break
-            else:
-                print(error_message)
-        return file_name
 
-    def vid_file_is_valid(vid_file_name) -> Tuple[bool, str]: #todo doesnt seem to work
-        try:
-            x = VideoFileClip(vid_file_name)
-        
-        except IOError:
-            return False, "file not found"
-
-        else:
-            return True, "No Error"
-
-    def ts_file_is_valid(vid_file_name) -> Tuple[bool, str]:
-        try:
-            file = open(vid_file_name, 'r')
-            
-
-        except IOError:
-            return False, "file not found"
-        
-        else:
-            
-            if file.readline()[0:15] != "Timestamps file":
-                return (False, "doesn't appear to be a timestamps file")
-            
-            file.close()
-            return True, "No Error"
-
-    if False:
-        return "part0and1.mkv", "test.txt"
-
-
-    #ask user for file names until it is valid  #Q: am i overcomplicating this?
-    video_file_name = ask_for_input("Enter the name of the video file to process: ", vid_file_is_valid)
-    ts_file_name = ask_for_input("Enter the name of the timestamps file with which to process: ", ts_file_is_valid)
-    return video_file_name, ts_file_name
 
 
 
@@ -191,4 +141,5 @@ def get_file_names_from_user() -> Tuple[str, str]:
 
 
 if __name__ == "__main__":
-    run_process_mode()
+    import sys
+    run_process_mode(sys.argv[1], sys.argv[2], f"CUT_{sys.argv[1]}.mp4")

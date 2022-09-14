@@ -7,20 +7,32 @@
 #so I don't have to import both modes when I will only run one
 
 
-#ask user for mode
-mode = input("Choose Mode:   \n1)Record 2)Proccess 3)Settings/Info:   ")
-while mode != "1" and mode != "2":
-    mode = input("invalid choice, valid choices: \"1\", \"2\":   ")
+#will revisit/redo this whole file / input methods
+
+
+def main():
+    #ask user for mode
+    mode = input("Choose Mode:   \n1)Record 2)Proccess 3)Settings/Info:   ")
+    while mode != "1" and mode != "2":
+        mode = input("invalid choice, valid choices: \"1\", \"2\":   ")
+        
+    #launch the correct mode
+    if mode == "1":
+        from record import start_record_mode
+        start_record_mode(output_file_name=input("enter the name of the file to write to (no extension): ") + ".txt")
     
-#launch the correct mode
-if mode == "1":
-    from record import start_record_mode
-    start_record_mode()
-    pass
-elif mode == "2":
-    from process import run_process_mode
-    run_process_mode()
-    pass
+    elif mode == "2":
+        
+        video, ts = get_file_names_from_user()
+        
+        from process import run_process_mode
+        run_process_mode(video, ts, get_output_file_name(video))
+
+
+
+
+
+
 
 
 #Notes:
@@ -59,3 +71,69 @@ elif mode == "2":
 #Later Notes:
 #Could consider making a cut silence effect to run before another say music effect
 
+
+
+"""
+#Notes
+    #todo: either put in subfolder for the videos or make this a system wide command (idk how currently)
+    #todo: option to run time cutter automatically after writing is finished
+"""
+
+#used to be in proccess.py: prob will redo / seperate that
+def get_file_names_from_user() -> Tuple[str, str]:  
+    #establish functions  #Q: Am I overcomplicating this? Also: is this the best way to organize the place of these functions
+    def ask_for_input(input_prompt:str, validity_checker_function):
+        while True:
+            file_name = input(input_prompt)
+            
+            is_valid, error_message = validity_checker_function(file_name)
+            if is_valid:break
+            else:
+                print(error_message)
+        return file_name
+
+    def vid_file_is_valid(vid_file_name) -> Tuple[bool, str]: #todo doesnt seem to work
+        try:
+            #x = VideoFileClip(vid_file_name)
+            pass
+        
+        except IOError:
+            return False, "file not found"
+
+        else:
+            return True, "No Error"
+
+    def ts_file_is_valid(vid_file_name) -> Tuple[bool, str]:
+        try:
+            file = open(vid_file_name, 'r')
+            
+
+        except IOError:
+            return False, "file not found"
+        
+        else:
+            
+            if file.readline()[0:15] != "Timestamps file":
+                return (False, "doesn't appear to be a timestamps file")
+            
+            file.close()
+            return True, "No Error"
+
+    if False:
+        return "part0and1.mkv", "test.txt"
+
+
+    #ask user for file names until it is valid  #Q: am i overcomplicating this?
+    video_file_name = ask_for_input("Enter the name of the video file to process: ", vid_file_is_valid)
+    ts_file_name = ask_for_input("Enter the name of the timestamps file with which to process: ", ts_file_is_valid)
+    return video_file_name, ts_file_name
+
+#same
+def get_output_file_name(video_file_name:str):
+    #todo: reconsider tis + add more questions at the start
+    return "CUT_"+ video_file_name + ".mp4"
+
+
+
+
+main()
