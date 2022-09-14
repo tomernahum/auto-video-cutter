@@ -55,7 +55,7 @@ def edit_video(video_file_name, ts_file_name, output_file_name):
     #concrete things below here :0 (im tired)
     main_vfc = VideoFileClip(video_file_name)
     vfc_list = get_vfc_list(uncut_segments, main_vfc)
-    final_vfc: VideoFileClip = concatenate_videoclips(vfc_list)
+    final_vfc = concatenate_videoclips(vfc_list)
 
     print("Writing Output File")
     final_vfc.write_videofile(output_file_name)
@@ -68,7 +68,7 @@ def get_output_file_name(video_file_name:str):
 
 
 
-def get_vfc_list(segments_list:List[Segment], main_vfc:VideoFileClip):
+def get_vfc_list(segments_list:List[Segment], main_vfc:VideoFileClip) -> List[VideoFileClip]:
     vfc_list = []
     for s in segments_list:
         vfc_list.append(main_vfc.subclip(s.start_time, s.end_time))
