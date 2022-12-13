@@ -9,6 +9,7 @@
 
 #will revisit/redo this whole file / input methods
 
+from typing import *
 
 def main():
     #ask user for mode
