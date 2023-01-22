@@ -42,7 +42,7 @@ class Config:  # to be used as a dataclass and just modified raw by the config f
         return list_of_hotkeys
 
 
-def get_record_mode_config(system="from file") -> Config:
+def get_record_mode_config(system="from file") -> Config: #main1
     config = Config()
 
     if system == "from file":
@@ -125,3 +125,13 @@ def reset_config_file_to_default():
 
 def set_hotkey_in_config_file(name, new_hotkey):
     pass
+
+
+def run_config_mode():  #main
+    import keyboard
+
+    print("To config, modify the config.json file")
+
+    print("Type a hotkey now to see its name (then you can write it in the config file manually for now).") 
+    print(keyboard.read_hotkey())
+    

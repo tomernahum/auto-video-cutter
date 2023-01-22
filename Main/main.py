@@ -3,8 +3,8 @@ from typing import * #type: ignore #todo
 def main():
     #ask user for mode
     mode = input("Choose Mode:   \n1)Record 2)Process 3)Settings/Info:   ")
-    while mode != "1" and mode != "2":
-        mode = input("invalid choice, valid choices: \"1\", \"2\":   ")
+    while mode not in {"1", "2", "3"}:
+        mode = input("invalid choice, valid choices: \"1\", \"2\", \"3\":   ")
         
     #launch the correct mode
     if mode == "1":
@@ -17,7 +17,11 @@ def main():
         
         from process import run_process_mode
         run_process_mode(video, ts, get_output_file_name(video))
+    
+    elif mode == "3":
 
+        from config import run_config_mode
+        run_config_mode()
 
 
 
