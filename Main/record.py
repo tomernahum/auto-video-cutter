@@ -25,6 +25,7 @@ as I am essentially running 2 scripts at once (check for hotkeys & update live t
 
 #yeah this isn't structured the best now that its the future, esp the hotkey config being in like 3 places (though probably could be fixed with a class), still pretty cool to make / proud
 
+#search "#main" to get to main part
 
 import datetime
 from math import ceil

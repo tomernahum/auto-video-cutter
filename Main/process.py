@@ -27,8 +27,67 @@ class Segment:
         return self._is_cut
 
 
+def start_process_mode(): #main
+    def get_file_names_from_user() -> Tuple[str, str]:  
+        def ask_for_input(input_prompt:str, validity_checker_function):
+            while True:
+                file_name = input(input_prompt)
+                
+                is_valid, error_message = validity_checker_function(file_name)
+                if is_valid:break
+                else:
+                    print(error_message)
+            return file_name
 
-def run_process_mode(video_file_name, ts_file_name, output_file_name): #main
+        def vid_file_is_valid(vid_file_name) -> Tuple[bool, str]: #todo doesnt seem to work
+            try:
+                #x = VideoFileClip(vid_file_name)
+                pass
+            
+            except IOError:
+                return False, "file not found"
+
+            else:
+                return True, "No Error"
+
+        def ts_file_is_valid(vid_file_name) -> Tuple[bool, str]:
+            try:
+                file = open(vid_file_name, 'r')
+                
+
+            except IOError:
+                return False, "file not found"
+            
+            else:
+                
+                if file.readline()[0:15] != "Timestamps file":
+                    return (False, "doesn't appear to be a timestamps file")
+                
+                file.close()
+                return True, "No Error"
+
+        if False:
+            return "part0and1.mkv", "test.txt"
+
+
+        #ask user for file names until it is valid  #Q: am i overcomplicating this?
+        video_file_name = ask_for_input("Enter the name of the video file to process: ", vid_file_is_valid)
+        ts_file_name = ask_for_input("Enter the name of the timestamps file with which to process: ", ts_file_is_valid)
+        return video_file_name, ts_file_name
+    def convert_in_filename_to_out_filename(video_file_name:str):
+        extension = video_file_name.split(".")[-1]
+        
+        if extension not in {"mp4"}:
+            #moviepy doesnt seem to work well with mkvs for some reason. So I just convert everything to mp4. (rather than figure out what else it doesn't work with)
+            return "CUT_" + video_file_name  + ".mp4"
+        return "CUT_" + video_file_name
+
+    video_fn, ts_fn = get_file_names_from_user()
+    output_fn = convert_in_filename_to_out_filename(video_fn)
+    run_process_mode(video_fn, ts_fn, output_fn)
+
+
+def run_process_mode(video_file_name, ts_file_name, output_file_name): 
 
     #todo: maybe check if files are valid here?
 
@@ -52,13 +111,20 @@ def edit_video(video_file_name, ts_file_name, output_file_name):
 
 
     print("Building VideoFileClips...")
-    #concrete things below here :0 (im tired) #still figuring out coding philosophy haha
     main_vfc = VideoFileClip(video_file_name)
     vfc_list = get_vfc_list(uncut_segments, main_vfc)
     final_vfc = concatenate_videoclips(vfc_list)
+    
 
     print("Writing Output File...")
     final_vfc.write_videofile(output_file_name)
+
+    #Close clips. Not entirely sure if needed or not
+    final_vfc.close()
+    for i in vfc_list:
+        i.close()
+    main_vfc.close()
+    
 
 
 

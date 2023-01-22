@@ -41,4 +41,7 @@ Also I will clean up the release with stuff such as a dependencies file & a lice
 
 No promises about continued development though
 
+## Other Notes
+moviepy doesn't seem to work well with mkvs for some reason? so if you're having trouble try converting your video to mp4 first
+
 
