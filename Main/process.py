@@ -6,25 +6,25 @@ from moviepy.editor import *
 class Segment:
     start_time : float
     end_time :float
-    is_cut : bool
+    _is_cut : bool
     
     def __repr__(self) -> str:
-        if self.is_cut: x = "Cut"
+        if self._is_cut: x = "Cut"
         else: x = "Uncut"
         return f"Segment({self.start_time} - {self.end_time}: {x})"
 
     def __init__(self, start_time, end_time):
         self.start_time = start_time
         self.end_time = end_time
-        self.is_cut = None
+        self._is_cut = None
     
     def mark_as_cut(self):
-        self.is_cut = True
+        self._is_cut = True
     def mark_as_not_cut(self):
-        self.is_cut = False
+        self._is_cut = False
 
-    def is_cutt(self):
-        return self.is_cut
+    def is_cut(self):
+        return self._is_cut
 
 
 
@@ -41,20 +41,23 @@ def run_process_mode(video_file_name, ts_file_name, output_file_name): #main
 def edit_video(video_file_name, ts_file_name, output_file_name):
     print("Parsing timestamps file...")
     timestamps_data = parse_timestamps_file(ts_file_name)
+    print(timestamps_data)
+    print()
 
     print("Building segments...")
     all_segments = get_list_of_segments(timestamps_data)
     uncut_segments = get_list_of_uncut_segments(all_segments)
-    print(uncut_segments)
+    print(all_segments)
+    print()
 
 
     print("Building VideoFileClips...")
-    #concrete things below here :0 (im tired)
+    #concrete things below here :0 (im tired) #still figuring out coding philosophy haha
     main_vfc = VideoFileClip(video_file_name)
     vfc_list = get_vfc_list(uncut_segments, main_vfc)
     final_vfc = concatenate_videoclips(vfc_list)
 
-    print("Writing Output File")
+    print("Writing Output File...")
     final_vfc.write_videofile(output_file_name)
 
 
@@ -69,26 +72,30 @@ def get_vfc_list(segments_list:List[Segment], main_vfc:VideoFileClip) -> List[Vi
         vfc_list.append(main_vfc.subclip(s.start_time, s.end_time))
     return vfc_list
 
-
+#Bugged!
 def get_list_of_segments(timestamps_data: List[Tuple[float, str]]):
-    segments_list = []
+    segments_list: List[Segment] = []
 
     last_timestamp = 0
     for timestamp, action in timestamps_data:
         segment = Segment(last_timestamp, timestamp)
         
-        if action == "Reject" or action == "End":
+        if action == "Rejected" or action == "Ended":
             segment.mark_as_cut()
-        elif action == "Accept":
+        elif action == "Accepted":
             segment.mark_as_not_cut()
         
-        elif action == "Retake A":
+        elif action == "Retaking A.":
             segment.mark_as_cut()
             #mark last uncut segment as cut
             for previous_segment in reversed(segments_list):
-                if not previous_segment.is_cut:
+                if not previous_segment.is_cut():
                     previous_segment.mark_as_cut()
                     break
+                else:
+                    continue
+        else:
+            raise Exception("Something went wrong")
 
         segments_list.append(segment)
         last_timestamp = timestamp
@@ -98,7 +105,7 @@ def get_list_of_segments(timestamps_data: List[Tuple[float, str]]):
 def get_list_of_uncut_segments(list_of_segments:List[Segment]):
     output = []
     for segment in list_of_segments:
-        if not segment.is_cut:
+        if not segment._is_cut:
             output.append(segment)
     return output #todo list comprehension cause why not ig
 
