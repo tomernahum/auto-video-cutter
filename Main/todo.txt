@@ -1,0 +1,5 @@
+- Refactor everything
+- Web interface for plugging in to OBS window as panel
+
+- Cancel hotkey or make sure interrupt cancels the file
+- Look into linting errors

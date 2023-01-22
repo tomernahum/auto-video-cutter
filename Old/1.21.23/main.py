@@ -1,3 +1,14 @@
+# 2 modes: Record & Proccess (Possibly Settings mode too)
+
+#from record import start_record_mode
+#from process_redo import run_process_mode
+
+#todo: I think I should call it from system and add a main.py (I will look into it)
+#so I don't have to import both modes when I will only run one
+
+
+#will revisit/redo this whole file / input methods
+
 from typing import * #type: ignore #todo
 
 def main():

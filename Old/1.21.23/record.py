@@ -272,7 +272,7 @@ def start_record_mode(output_file_name): #main
     global output_file
     global config
     
-    config = get_config()
+    config = get_config_test()
 
     output_file = open(output_file_name, "w")
     
@@ -623,10 +623,30 @@ class Config:  #to be used as a dataclass and just modified raw by the config fi
         return list_of_hotkeys
     
 
+def get_config_test() -> Config:
+    system = "alternate"
+    
+    if system == "default":
+        return Config()
+
+    elif system == "alternate":
+        config = Config()
+
+        #config.start_hotkey = "alt+s"
+        #config.end_hotkey = "alt+e"
+        
+        config.cut_action_hotkeys_to_data_obj = dict()
+        config.cut_action_hotkeys_to_data_obj["alt+1"] = Accept()
+        config.cut_action_hotkeys_to_data_obj["alt+2"] = Reject()
+        config.cut_action_hotkeys_to_data_obj["alt+3"] = RetakeAccepted()
+
+        return config
+
+    elif system == "from file":
+        pass
 
 def get_config():
-    import config
-    return config.get_record_mode_config()
+    pass
 
 
 

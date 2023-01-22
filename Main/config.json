@@ -1,0 +1,8 @@
+{
+    "Start Hotkey" : "0+-",
+    "End Hotkey" : "0+-",
+    "Pause Hotkey": "0+.",
+    "Accept Hotkey" : "0+1",
+    "Reject Hotkey" : "0+2",
+    "Retake Accepted Hotkey": "0+3"
+}
