@@ -1,8 +1,8 @@
 {
-    "Start Hotkey" : "0+-",
-    "End Hotkey" : "0+-",
-    "Pause Hotkey": "0+.",
-    "Accept Hotkey" : "0+1",
-    "Reject Hotkey" : "0+2",
-    "Retake Accepted Hotkey": "0+3"
+    "Start Hotkey" : "ctrl+shift+|",
+    "End Hotkey" : "ctrl+shift+|",
+    "Pause Hotkey": "alt+p",
+    "Accept Hotkey" : "alt+q",
+    "Reject Hotkey" : "alt+w",
+    "Retake Accepted Hotkey": "alt+3"
 }
