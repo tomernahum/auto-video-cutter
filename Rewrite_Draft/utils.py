@@ -1,3 +1,8 @@
+
+import datetime
+from math import ceil
+import time
+
 class Timer:
     last_unpause_time = None #really time since last pause
     time_before_last_pause = None
@@ -74,3 +79,16 @@ class Timer:
             self.start_time = None
             
     #add in functionality for estimated post-cut time (reject)
+
+
+def truncate_number_str(number, digits_after_decimal=2):
+    multiplier = 10 ** digits_after_decimal # to the power of
+    num = float(number) #just in case
+    truncated_num = int(num * multiplier)  /  multiplier  #eg x = 25.54321: x=(x*100)=2554.321| x=(int(x)) = 2554| x = x/100 = 25.54
+    
+    #make the decimals place have the appropriate number of digits if it has less (might be a better way to do this)
+    semifinal_string = str(truncated_num)
+    while len(semifinal_string.split(".")[1]) < digits_after_decimal:
+        semifinal_string += "0"
+
+    return semifinal_string

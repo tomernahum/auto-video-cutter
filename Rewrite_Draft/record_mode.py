@@ -1,23 +1,24 @@
+import time
 
 
-actions = {
-    "start": "",
-    "end" : "",
-    "pause" : "",
-
-    "start_new_segment" : "",
-    "restart_current_segment" : "",
-    "restart_previous_segment": "",
-
-    "start_effect_1" : "",
-    "end_effect_1" : "",
-
-    "add_note": ""
-}
-
-
+from cut_actions import CutActions
+from plugins import PluginsToMainInterface
 
 def main():
+    plugin_to_main_interface = PluginsToMainInterface()
+    plugin = CutActions(plugin_to_main_interface)
+    plugin.on_start()
 
+    #V A
+    actions = plugin.get_actions_1()
+    actions[0].run()
 
+    #V B
+    actions2 = plugin.get_actions_2()
+    actions2["StartNewSegment"]() 
+    actions2["TestAction"] ("Hello!!")
+
+    print("done")
     pass
+
+main()
