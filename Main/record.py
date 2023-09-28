@@ -1,3 +1,5 @@
+#search "#main" to get to main part
+
 """
 Things we want:
 - Segments accepted count
@@ -20,12 +22,13 @@ Things we want:
 Note: Global variables are apparently bad form but it seemed cleaner |: I guess that's a sign that
 I'm not doing it right? Maybe it should be all in classes? I think this could also be a special case
 as I am essentially running 2 scripts at once (check for hotkeys & update live timer) (seems to work fine as of now though)
+
+Future me: I think it's fine, this is not running on a server it's running on a client, this is kind of frontend-y 
 """
 #bug: it'd be nice if it didn't flash when printing
 
 #yeah this isn't structured the best now that its the future, esp the hotkey config being in like 3 places (though probably could be fixed with a class), still pretty cool to make / proud
 
-#search "#main" to get to main part
 
 import datetime
 from math import ceil
@@ -633,6 +636,7 @@ def get_config():
 
 
 if __name__ == "__main__":
+    # normal use is to run main.py
     import sys
     start_record_mode(sys.argv[1])
 
