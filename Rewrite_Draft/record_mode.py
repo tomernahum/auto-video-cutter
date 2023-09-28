@@ -17,6 +17,7 @@ def main():
     actions2 = plugin.get_actions_2()
     actions2["StartNewSegment"]() 
     actions2["TestAction"] ("Hello!!")
+    actions2["Test2"] ("Goodbye!")
 
     print("done")
     pass
