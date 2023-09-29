@@ -92,3 +92,26 @@ def truncate_number_str(number, digits_after_decimal=2):
         semifinal_string += "0"
 
     return semifinal_string
+
+
+
+def addToMultiDimensionalListDict(dict, key, value):
+    if key not in dict:
+        dict[key] = [value]
+    else:
+        dict[key].append(value)
+
+def addToListDict(dictt, key, value):
+    isList = isinstance(value, list)
+
+    if key not in dictt:
+        if isList:
+            dictt[key] = value
+        else:
+            dictt[key] = [value]
+    else:
+        if isList:
+            dictt[key].extend(value)
+        else:
+            dictt[key].append(value)
+
