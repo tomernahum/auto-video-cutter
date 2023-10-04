@@ -437,6 +437,7 @@ def pause_or_unpause():
     cut_timer.toggle_pause()
     #do anything else
 
+# this could be a method of CutAction class. 
 def mark_cut_action(cut_action:CutAction, timer):
     #segments done
     #estimated total vid time
