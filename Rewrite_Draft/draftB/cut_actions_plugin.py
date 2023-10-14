@@ -7,6 +7,7 @@ def register_cut_action_plugin(interface:PluginInterface, config):
     def markEvent(name:str):
         interface.mark_current_timestamp(name)
         interface.print(f"{name} marked")
+        # interface.mark_timestamp(interface.getCurrentTimeStamp())
     
     events = ["StartNewSegment", "RestartSegment", "RestartLastSegment"]
     for i in events:

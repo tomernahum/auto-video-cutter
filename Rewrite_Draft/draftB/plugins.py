@@ -2,7 +2,8 @@ from typing import Callable
 from utils import addToListDict
 
 
-class PluginInterface():
+
+class PluginInterface(): # AKA Mediator pattern I think
     start_callbacks = []
     events_callbacks = {}
 

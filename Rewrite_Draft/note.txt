@@ -1,0 +1,1 @@
+yeah I know about git branches maybe I should be using that instead of folders. This project was started before I knew about git so I'm keeping with that theme + it's simpler for me right now

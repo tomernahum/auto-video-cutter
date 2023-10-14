@@ -7,7 +7,7 @@ from utils import Timer
 
 class CutActions(Plugin):
     timer = Timer() # should this be done in main loop and then actions are called w current time?   
-    #^ also todo: ms support etc
+    #^ also todo: ms support etc/=
 
     def __init__(self, actions:PluginsToMainInterface):
         #self.segmentTimer = Timer()
@@ -27,6 +27,11 @@ class CutActions(Plugin):
             "TestAction": self.test_action,
             "Test2": test_2
         }
+
+    # or 
+    # def on_action(actionName):
+    #   if actionName == this: start_new_segment()
+    # that would be more consistant I think 
 
     def start_new_segment_action(self): # todo: `implements some type``
         self.actions.write_to_timestamps_file(f"New Segment at {self.timer.get_formatted_current_time()}")

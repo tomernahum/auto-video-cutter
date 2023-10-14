@@ -20,6 +20,11 @@ def register_example_plugin(interface:PluginInterface):
 
     interface.on_event_triggered("printTime", lambda: print(f"{timer.get_formatted_current_time()} Hi"))
 
+    #maybe
+    cut_actions = interface.request_module_reference("cut_actions")
+    effects = interface.request_module_reference("effects")
+    getTime = lambda: (cut_actions.get_cut_timer() + effects.get_total_added_time())
+    interface.on_display_update(lambda: getTime().format())
 
 
     # editing part
