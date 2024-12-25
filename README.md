@@ -32,7 +32,7 @@ Alt+P to pause the recording (make sure this is synced with your recording softw
 ## Dependencies
 1) [Make sure you have python 3 installed](https://www.python.org/downloads/)
 2) in terminal, type:
-   1) pip3 install moviepy
+   1) pip3 install moviepy==1.0.3
    2) pip3 install keyboard
 
 ## Notes
