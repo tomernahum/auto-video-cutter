@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Tuple
-from moviepy.editor import *
+from moviepy import VideoFileClip, concatenate_videoclips
 
 
 class Segment:
@@ -50,9 +50,9 @@ def start_process_mode(): #main
             else:
                 return True, "No Error"
 
-        def ts_file_is_valid(vid_file_name) -> Tuple[bool, str]:
+        def ts_file_is_valid(ts_file_name) -> Tuple[bool, str]:
             try:
-                file = open(vid_file_name, 'r')
+                file = open(f"recordings/{ts_file_name}", 'r')
                 
 
             except IOError:
@@ -84,7 +84,7 @@ def start_process_mode(): #main
 
     video_fn, ts_fn = get_file_names_from_user()
     output_fn = convert_in_filename_to_out_filename(video_fn)
-    run_process_mode(video_fn, ts_fn, output_fn)
+    run_process_mode(f"recordings/{video_fn}", f"recordings/{ts_fn}", f"recordings/{output_fn}")
 
 
 def run_process_mode(video_file_name, ts_file_name, output_file_name): 
@@ -135,7 +135,7 @@ def edit_video(video_file_name, ts_file_name, output_file_name):
 def get_vfc_list(segments_list:List[Segment], main_vfc:VideoFileClip) -> List[VideoFileClip]:
     vfc_list = []
     for s in segments_list:
-        vfc_list.append(main_vfc.subclip(s.start_time, s.end_time))
+        vfc_list.append(main_vfc.subclipped(s.start_time, s.end_time))
     return vfc_list
 
 #Bugged!

@@ -2,6 +2,8 @@
 # adapter for keyboard libary -> pyinput
 # used because keyboard library does not really support mac
 
+# TODO control and command do not work properly on mac
+
 from pynput import keyboard as _kb
 
 __all__ = ["wait", "add_hotkey"]

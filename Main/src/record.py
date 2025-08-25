@@ -292,7 +292,7 @@ def start_record_mode(output_file_name): #main
     #wait for start key & start recording
     #start_hotkey = "ctrl+shift+\\"
     start_hotkey = config.start_hotkey
-    print(f"press [{start_hotkey}] to start recording")
+    print(f"press [{start_hotkey}] to start timestamp recording - make sure your video recording software starts at the same exact time")
     keyboard.wait(start_hotkey)
     main_timer.start_timer()
     cut_timer.start_timer()
@@ -314,6 +314,8 @@ def start_record_mode(output_file_name): #main
     footer = f"EOF. segments done: {segments_done}, projected final time: {cut_timer.get_formatted_current_time()}"
     output_file.write(footer)
     output_file.close()
+    
+    print(f"wrote timestamps to {output_file_name}")
 
 def run_updating_display():
     #todo *: replace effects timer with ones that adjust for rejection
