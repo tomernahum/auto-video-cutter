@@ -33,7 +33,8 @@ Future me: I think it's fine, this is not running on a server it's running on a 
 import datetime
 from math import ceil
 import time
-import keyboard
+# import keyboard
+import keyboardAdapter as keyboard
 
 #global vars: #may organize some into classes or something
 global output_file

@@ -1,6 +1,6 @@
 @ECHO OFF
 
 
-python main.py
+python src/main.py
 
 PAUSE

@@ -9,7 +9,8 @@ def main():
     #launch the correct mode
     if mode == "1":
         from record import start_record_mode
-        start_record_mode(output_file_name=input("enter the name of the file to write to (no extension): ") + ".txt")
+        file_name = input("enter the name of the file to write to (no extension): ")
+        start_record_mode("./recordings/" + file_name + ".txt")
     
     elif mode == "2":
         from process import start_process_mode

@@ -1,7 +1,7 @@
 {
-    "Start Hotkey" : "ctrl+shift+|",
-    "End Hotkey" : "ctrl+shift+|",
-    "Pause Hotkey": "alt+p",
+    "Start Hotkey" : "option+shift+\\",
+    "End Hotkey" : "option+shift+\\",
+    "Pause Hotkey": "ctrl+shift+p",
     "Accept Hotkey" : "alt+q",
     "Reject Hotkey" : "alt+w",
     "Retake Accepted Hotkey": "alt+e"
